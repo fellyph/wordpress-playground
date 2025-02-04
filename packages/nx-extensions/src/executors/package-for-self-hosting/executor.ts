@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
-import { ExecutorContext, logger } from '@nx/devkit';
+import { ExecutorContext, joinPathFragments, logger } from '@nx/devkit';
 import { PackageForSelfHostingExecutorSchema } from './schema';
 import * as tar from 'tar-fs';
 
@@ -9,11 +9,13 @@ export default async function packageForSelfHostingExecutor(
 	options: PackageForSelfHostingExecutorSchema,
 	context: ExecutorContext
 ) {
-	const { hostingBaseUrl } = options;
+	let hostingBaseUrl: URL;
 	try {
-		new URL(hostingBaseUrl);
+		hostingBaseUrl = new URL(options.hostingBaseUrl);
 	} catch (e) {
-		logger.error(`hostingBaseUrl option "${hostingBaseUrl}" is not a URL.`);
+		logger.error(
+			`hostingBaseUrl option "${options.hostingBaseUrl}" is not a URL.`
+		);
 		return { success: false };
 	}
 
@@ -35,10 +37,11 @@ export default async function packageForSelfHostingExecutor(
 		return { success: false };
 	}
 
-	// TODO : Is there a way to explicitly run a build for this project here using the task orchestrator?
+	// TODO : Is there a way to explicitly run a build here using the task orchestrator?
 	// Running a single target's executor doesn't run dependencies
 	// https://github.com/nrwl/nx/issues/19531#issuecomment-1760343458
-	// For now, this executor must be declared to depend upon the target that builds with a package.json
+	// For now, this executor must be declared to depend upon the target
+	// that builds with a package.json
 
 	const packageJsonPath = path.join(builtPackagePath, 'package.json');
 	if (!fs.existsSync(packageJsonPath)) {
@@ -85,12 +88,12 @@ export default async function packageForSelfHostingExecutor(
 		);
 	}
 
-	// TODO: Bump version for release
 	// TODO: Should 'dist' not be hardcoded?
 	const tarballOutputDir = path.join(
 		path.resolve('dist'),
 		'packages-for-self-hosting',
-		encodeURIComponent(hostingBaseUrl)
+		encodeURIComponent(hostingBaseUrl.href),
+		`v${packageVersion}`
 	);
 	fs.mkdirSync(tarballOutputDir, { recursive: true });
 
@@ -125,12 +128,15 @@ export default async function packageForSelfHostingExecutor(
 }
 
 function getTarballFileName(packageName: string, packageVersion: string) {
+	// NOTE: This assumes we always use a simple version string for
+	// Playground dependencies like "1.2.3" rather than an expression
+	// like "^1.2.3"
 	const baseName = packageName.replaceAll('/', '-');
 	return `${baseName}-${packageVersion}.tar.gz`;
 }
 
 function mapToSelfHostedDependencies(
-	hostingBaseUrl: string,
+	hostingBaseUrl: URL,
 	dependencies: Record<string, string>
 ) {
 	const mappedDependencies = {};
@@ -139,13 +145,14 @@ function mapToSelfHostedDependencies(
 			depName.startsWith('@php-wasm/') ||
 			depName.startsWith('@wp-playground/');
 		if (isPlaygroundPackage) {
-			const maybeSlash = hostingBaseUrl.endsWith('/') ? '' : '/';
-			// NOTE: This assumes we always use a simple version string for
-			// Playground dependencies like "1.2.3" rather than an expression
-			// like "^1.2.3"
+			const tarballUrl = new URL(hostingBaseUrl);
 			const tarballName = getTarballFileName(depName, depVersion);
-			const tarballUrl = `${hostingBaseUrl}${maybeSlash}${tarballName}`;
-			mappedDependencies[depName] = tarballUrl;
+			tarballUrl.pathname = joinPathFragments(
+				tarballUrl.pathname,
+				`v${depVersion}`,
+				tarballName
+			);
+			mappedDependencies[depName] = tarballUrl.href;
 		} else {
 			mappedDependencies[depName] = depVersion;
 		}
