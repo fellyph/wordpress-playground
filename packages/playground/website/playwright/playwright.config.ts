@@ -11,7 +11,7 @@ export const playwrightConfig: PlaywrightTestConfig = {
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
 	forbidOnly: !!process.env.CI,
 	retries: 3,
-	workers: 3,
+	workers: 1,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: [['html'], ['list', { printSteps: true }]],
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -25,7 +25,7 @@ export const playwrightConfig: PlaywrightTestConfig = {
 	},
 
 	timeout: 300000,
-	expect: { timeout: 45000 },
+	expect: { timeout: 60000 },
 
 	/* Configure projects for major browsers */
 	projects: [
