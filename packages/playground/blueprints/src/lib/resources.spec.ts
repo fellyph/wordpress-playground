@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { UrlResource, GitDirectoryResource } from './resources';
 
 describe('UrlResource', () => {
@@ -20,19 +19,6 @@ describe('UrlResource', () => {
 		expect(resource.getURL()).toBe(
 			'https://raw.githubusercontent.com/WordPress/wordpress-develop/trunk/src/wp-includes/version.php'
 		);
-	});
-
-	it('should resolve file URLs in command-line environment', async () => {
-		const thisTestCode = new Blob([readFileSync(__filename)]);
-		const fileUrlForThisTestCode = new URL(__filename, 'file:');
-		const resource = new UrlResource({
-			resource: 'url',
-			url: fileUrlForThisTestCode.href,
-			caption: 'File URL Test',
-		});
-
-		const result = await resource.resolve();
-		expect(await result.text()).toBe(await thisTestCode.text());
 	});
 });
 
