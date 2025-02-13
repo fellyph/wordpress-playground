@@ -301,22 +301,39 @@ export abstract class FetchResource extends Resource<File> {
 		this.progress?.setCaption(this.caption);
 		const url = this.getURL();
 		try {
-			let response = await fetchWithCorsProxy(
-				url,
-				undefined,
-				this.corsProxy
+			const looksLikeFileUrl = url.startsWith('file:');
+			const looksLikeCommandLineEnvironment = import.meta.url.startsWith(
+				'file:'
 			);
-			if (!response.ok) {
-				throw new Error(`Could not download "${url}"`);
+			let blob: Blob;
+			if (looksLikeFileUrl && looksLikeCommandLineEnvironment) {
+				const [nodeFs, nodeUrl] = await Promise.all([
+					import('fs'),
+					import('url'),
+				]);
+
+				const filePath = nodeUrl.fileURLToPath(url);
+				const buffer = nodeFs.readFileSync(filePath);
+				blob = new Blob([buffer]);
+			} else {
+				let response = await fetchWithCorsProxy(
+					url,
+					undefined,
+					this.corsProxy
+				);
+				if (!response.ok) {
+					throw new Error(`Could not download "${url}"`);
+				}
+				response = await cloneResponseMonitorProgress(
+					response,
+					this.progress?.loadingListener ?? noop
+				);
+				if (response.status !== 200) {
+					throw new Error(`Could not download "${url}"`);
+				}
+				blob = await response.blob();
 			}
-			response = await cloneResponseMonitorProgress(
-				response,
-				this.progress?.loadingListener ?? noop
-			);
-			if (response.status !== 200) {
-				throw new Error(`Could not download "${url}"`);
-			}
-			return new File([await response.blob()], this.name);
+			return new File([blob], this.name);
 		} catch (e) {
 			throw new Error(
 				`Could not download "${url}".
