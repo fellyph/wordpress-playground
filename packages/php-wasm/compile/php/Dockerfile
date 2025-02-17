@@ -1071,7 +1071,7 @@ RUN set -euxo pipefail; \
 		# This assumes the traffic is always forwarded to the same target.
 		# However, we want to support arbitrary targets, so we need to
 		# replace the hardcoded websocket target URL with a dynamic callback.
-		/root/replace.sh $'s/if\s*\(\s*SOCKFS\.websocketArgs\["url"\]\s*\)/if("function"===typeof SOCKFS.websocketArgs["url"]) {\nurl = SOCKFS.websocketArgs["url"](...arguments);\n}else if ("string" === typeof SOCKFS.websocketArgs["url"])/g' \
+		/root/replace.sh $'s/if\s*\(\s*SOCKFS\.websocketArgs\[[\'"]url[\'"]\]\s*\)/if("function"===typeof SOCKFS.websocketArgs["url"]) {\nurl = SOCKFS.websocketArgs["url"](...arguments);\n}else if ("string" === typeof SOCKFS.websocketArgs["url"])/g' \
 			/root/output/php.js; \
 		# Enable custom WebSocket constructors to support socket options.
 		/root/replace.sh "s/ws\s*=\s*new WebSocketConstructor/if (Module['websocket']['decorator']) {WebSocketConstructor = Module['websocket']['decorator'](WebSocketConstructor);}ws = new WebSocketConstructor/g" /root/output/php.js && \
@@ -1122,13 +1122,13 @@ RUN set -euxo pipefail; \
 		# In case of WordPress Playground, the worker in which the PHP
 		# runs will typically exit after the PHP program finishes, so
 		# we don't have to worry about memory leaks.
-		/root/replace-across-lines.sh 's/(class\s+ExitStatus\s*\{\s*name\s*=\s*"ExitStatus";\s*constructor\(\s*status\s*\)\s*\{\s*this\.message\s*=\s*`Program terminated with exit\(\$\{status\}\)`;\s*this.status\s*=\s*status;?\s*\}\s*\})/$1\nExitStatus = class PHPExitStatus extends Error {\nconstructor(status) {\n		super(status);\n		this.name = "ExitStatus";\n		this.message = "Program terminated with exit(" + status + ")";\n		this.status = status;\n	}\n};/' /root/output/php.js; \
+		/root/replace-across-lines.sh "s/(class\\s+ExitStatus\\s*{\\s*name\\s*=\\s*['\"]ExitStatus['\"];\\s*constructor\\s*\(\\s*status\\s*\)\\s*{\\s*this\\.message\\s*=\\s*\`Program terminated with exit\(\\\${status}\)\`;\s*this\\.status\\s*=\\s*status;\\s*}\\s*})/\$1\nExitStatus = class PHPExitStatus extends Error {\n	constructor\(status\) {\n		super\(status\);\n		this.name = 'ExitStatus';\n		this.message = 'Program terminated with exit\(' + status + '\)';\n		this.status = status;\n	}\n};/" /root/output/php.js; \
 	# Restore quit handling to Emscripten
 		# Quit callback customization was removed from Emscripten by:
 		# https://github.com/emscripten-core/emscripten/pull/22371
 		# But the alternative `onExit()` handling is conditional and has different semantics.
 		# To avoid bugs due to this change, let's just restore support for quit callback customization.
-		/root/replace.sh 's/(if\s*\(Module\["thisProgram"\]\)\s*thisProgram\s*=\s*Module\["thisProgram"\];)/$1\nif (Module["quit"]) quit_=Module["quit"];/' /root/output/php.js; \
+		/root/replace.sh "s/(if\s*\(Module\[['\"]thisProgram['\"]\]\)\s*thisProgram\s*=\s*Module\[['\"]thisProgram['\"]\];)/\$1\nif (Module[\"quit\"]) quit_=Module[\"quit\"];/" /root/output/php.js; \
 	# Turn the php.js file into an ES module
 		# Manually turn the output into a esm module instead of relying on -s MODULARIZE=1.
 		# which pollutes the global namespace and does not play well with import() mechanics.
