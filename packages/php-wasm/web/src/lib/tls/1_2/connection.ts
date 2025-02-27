@@ -1,8 +1,6 @@
 import { ServerNameExtension } from '../extensions/0_server_name';
 import { CipherSuitesNames } from '../cipher-suites';
 import { CipherSuites } from '../cipher-suites';
-import { SupportedGroupsExtension } from '../extensions/10_supported_groups';
-import { ECPointFormatsExtension } from '../extensions/11_ec_point_formats';
 import { parseClientHelloExtensions } from '../extensions/parse-extensions';
 import {
 	ArrayBufferReader,
@@ -14,7 +12,6 @@ import {
 import {
 	HashAlgorithms,
 	SignatureAlgorithms,
-	SignatureAlgorithmsExtension,
 } from '../extensions/13_signature_algorithms';
 import { tls12Prf } from './prf';
 import {
@@ -1171,19 +1168,6 @@ class MessageEncoder {
 						 * Source: dfile:///Users/cloudnik/Library/Application%20Support/Dash/User%20Contributed/RFCs/RFCs.docset/Contents/Resources/Documents/rfc6066.html#section-3
 						 */
 						return ServerNameExtension.encodeForClient();
-					case 'supported_groups':
-						return SupportedGroupsExtension.encodeForClient(
-							'secp256r1'
-						);
-					case 'ec_point_formats':
-						return ECPointFormatsExtension.encodeForClient(
-							'uncompressed'
-						);
-					case 'signature_algorithms':
-						return SignatureAlgorithmsExtension.encodeforClient(
-							'sha256',
-							'rsa'
-						);
 				}
 				return undefined;
 			})
