@@ -5,7 +5,7 @@ import {
 	PHP,
 	__private__dont__use,
 } from '@php-wasm/universal';
-import { Semaphore, joinPaths } from '@php-wasm/util';
+import { Semaphore, basename, joinPaths } from '@php-wasm/util';
 import { logger } from '@php-wasm/logger';
 import { FilesystemOperation, journalFSEvents } from '@php-wasm/fs-journal';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -370,7 +370,6 @@ class OpfsRewriter {
 					this.opfs,
 					opfsTargetPath
 				);
-				const targetName = getFilename(opfsTargetPath);
 
 				if (entry.nodeType === 'directory') {
 					const opfsDir = await opfsTargetParent.getDirectoryHandle(
@@ -391,8 +390,41 @@ class OpfsRewriter {
 						recursive: true,
 					});
 				} else {
-					const file = await opfsParent.getFileHandle(name);
-					file.move(opfsTargetParent, targetName);
+					/**
+					 * Delete the old file and creating a new one.
+					 *
+					 * We cannot use the OPFS move() method here. Imagine pulling from
+					 * a Git repository – each pulled object is first buffered in a
+					 * file called ".tmp" and then renamed to its final name. However,
+					 * the WRITE operation does not store the written bytes, only the
+					 * path.
+					 *
+					 * By the time the filesystem journal is flushed, we cannot
+					 * assume that the "rename from" path still contains the same bytes
+					 * as it did when the WRITE operation was executed. Therefore, it's
+					 * safer to delete the old file and create a new one.
+					 *
+					 * It is still possible that the new file was already deleted
+					 * or renamed to another location. That's fine. A later stage
+					 * of replaying the journal will take care of that.
+					 *
+					 * Ideally, PHP.wasm would not use journaling at all, but
+					 * a native WASMFS layer for handling OPFS.
+					 *
+					 * See https://github.com/WordPress/wordpress-playground/pull/1878
+					 * for more details.
+					 */
+					try {
+						await opfsParent.removeEntry(name);
+					} catch (e) {
+						// If the directory already doesn't exist, it's fine
+					}
+					await overwriteOpfsFile(
+						opfsTargetParent,
+						basename(opfsTargetPath),
+						this.php[__private__dont__use].FS,
+						entry.toPath
+					);
 				}
 			}
 		} catch (e) {
