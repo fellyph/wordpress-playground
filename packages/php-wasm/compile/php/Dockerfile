@@ -71,6 +71,7 @@ ARG WITH_CURL
 ARG WITH_FILEINFO
 ARG WITH_LIBXML
 ARG WITH_LIBZIP
+ARG WITH_EXIF
 ARG WITH_GD
 ARG WITH_MBSTRING
 ARG WITH_MBREGEX
@@ -256,9 +257,18 @@ Cflags: -I${includedir}' > /root/lib/lib/pkgconfig/libcurl.pc; \
 	fi;
 
 # Add mbstring if needed
-RUN if [ "$WITH_MBSTRING" = "yes" ]; \
+# mbstring is required for the exif extension
+RUN if [ "$WITH_MBSTRING" = "yes" ] || [ "$WITH_EXIF" = "yes" ]; \
 	then echo -n ' --enable-mbstring ' >> /root/.php-configure-flags; \
 	else echo -n ' --disable-mbstring ' >> /root/.php-configure-flags; \
+	fi;
+
+# Add exif if needed
+RUN if [ "$WITH_EXIF" = "yes" ]; \
+	then \
+		echo -n ' --enable-exif ' >> /root/.php-configure-flags; \
+	else \
+		echo -n ' --disable-exif ' >> /root/.php-configure-flags; \
 	fi;
 
 # Add mbregex if needed
@@ -569,7 +579,12 @@ RUN export ASYNCIFY_IMPORTS=$'["_dlopen_js",\n\
 "dynCall_viiiiiii",\
 "dynCall_viiiiiiii",'; \
 
-export ASYNCIFY_ONLY=$'"zif_phar_fopen",\
+export ASYNCIFY_ONLY=$'\
+"zif_exif_imagetype",\
+"zif_exif_read_data",\
+"zif_exif_thumbnail",\
+"exif_error_docref",\
+"zif_phar_fopen",\
 "zif_phar_file_get_contents",\
 "zend_execute_script",\
 "php_execute_script_ex",\

@@ -41,6 +41,11 @@ const argParser = yargs(process.argv.slice(2))
 			choices: ['yes', 'no'],
 			description: 'Build with libzip support',
 		},
+		WITH_EXIF: {
+			type: 'string',
+			choices: ['yes', 'no'],
+			description: 'Build with exif support',
+		},
 		WITH_GD: {
 			type: 'string',
 			choices: ['yes', 'no'],
@@ -141,6 +146,7 @@ const platformDefaults = {
 		WITH_FILEINFO: 'yes',
 		WITH_ICONV: 'yes',
 		WITH_LIBXML: 'yes',
+		WITH_EXIF: 'yes',
 		WITH_GD: 'yes',
 		WITH_MBSTRING: 'yes',
 		WITH_MBREGEX: 'yes',
@@ -204,6 +210,8 @@ await asyncSpawn(
 		getArg('WITH_LIBXML'),
 		'--build-arg',
 		getArg('WITH_LIBZIP'),
+		'--build-arg',
+		getArg('WITH_EXIF'),
 		'--build-arg',
 		getArg('WITH_GD'),
 		'--build-arg',
