@@ -1,2258 +1,14 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4306:
-/***/ (function(module, exports) {
+/***/ 197:
+/***/ (() => {
 
-var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	autosize 4.0.4
-	license: MIT
-	http://www.jacklmoore.com/autosize
-*/
-(function (global, factory) {
-	if (true) {
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [module, exports], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
-		__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
-		(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
-		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	} else { var mod; }
-})(this, function (module, exports) {
-	'use strict';
-
-	var map = typeof Map === "function" ? new Map() : function () {
-		var keys = [];
-		var values = [];
-
-		return {
-			has: function has(key) {
-				return keys.indexOf(key) > -1;
-			},
-			get: function get(key) {
-				return values[keys.indexOf(key)];
-			},
-			set: function set(key, value) {
-				if (keys.indexOf(key) === -1) {
-					keys.push(key);
-					values.push(value);
-				}
-			},
-			delete: function _delete(key) {
-				var index = keys.indexOf(key);
-				if (index > -1) {
-					keys.splice(index, 1);
-					values.splice(index, 1);
-				}
-			}
-		};
-	}();
-
-	var createEvent = function createEvent(name) {
-		return new Event(name, { bubbles: true });
-	};
-	try {
-		new Event('test');
-	} catch (e) {
-		// IE does not support `new Event()`
-		createEvent = function createEvent(name) {
-			var evt = document.createEvent('Event');
-			evt.initEvent(name, true, false);
-			return evt;
-		};
-	}
-
-	function assign(ta) {
-		if (!ta || !ta.nodeName || ta.nodeName !== 'TEXTAREA' || map.has(ta)) return;
-
-		var heightOffset = null;
-		var clientWidth = null;
-		var cachedHeight = null;
-
-		function init() {
-			var style = window.getComputedStyle(ta, null);
-
-			if (style.resize === 'vertical') {
-				ta.style.resize = 'none';
-			} else if (style.resize === 'both') {
-				ta.style.resize = 'horizontal';
-			}
-
-			if (style.boxSizing === 'content-box') {
-				heightOffset = -(parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
-			} else {
-				heightOffset = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
-			}
-			// Fix when a textarea is not on document body and heightOffset is Not a Number
-			if (isNaN(heightOffset)) {
-				heightOffset = 0;
-			}
-
-			update();
-		}
-
-		function changeOverflow(value) {
-			{
-				// Chrome/Safari-specific fix:
-				// When the textarea y-overflow is hidden, Chrome/Safari do not reflow the text to account for the space
-				// made available by removing the scrollbar. The following forces the necessary text reflow.
-				var width = ta.style.width;
-				ta.style.width = '0px';
-				// Force reflow:
-				/* jshint ignore:start */
-				ta.offsetWidth;
-				/* jshint ignore:end */
-				ta.style.width = width;
-			}
-
-			ta.style.overflowY = value;
-		}
-
-		function getParentOverflows(el) {
-			var arr = [];
-
-			while (el && el.parentNode && el.parentNode instanceof Element) {
-				if (el.parentNode.scrollTop) {
-					arr.push({
-						node: el.parentNode,
-						scrollTop: el.parentNode.scrollTop
-					});
-				}
-				el = el.parentNode;
-			}
-
-			return arr;
-		}
-
-		function resize() {
-			if (ta.scrollHeight === 0) {
-				// If the scrollHeight is 0, then the element probably has display:none or is detached from the DOM.
-				return;
-			}
-
-			var overflows = getParentOverflows(ta);
-			var docTop = document.documentElement && document.documentElement.scrollTop; // Needed for Mobile IE (ticket #240)
-
-			ta.style.height = '';
-			ta.style.height = ta.scrollHeight + heightOffset + 'px';
-
-			// used to check if an update is actually necessary on window.resize
-			clientWidth = ta.clientWidth;
-
-			// prevents scroll-position jumping
-			overflows.forEach(function (el) {
-				el.node.scrollTop = el.scrollTop;
-			});
-
-			if (docTop) {
-				document.documentElement.scrollTop = docTop;
-			}
-		}
-
-		function update() {
-			resize();
-
-			var styleHeight = Math.round(parseFloat(ta.style.height));
-			var computed = window.getComputedStyle(ta, null);
-
-			// Using offsetHeight as a replacement for computed.height in IE, because IE does not account use of border-box
-			var actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(computed.height)) : ta.offsetHeight;
-
-			// The actual height not matching the style height (set via the resize method) indicates that 
-			// the max-height has been exceeded, in which case the overflow should be allowed.
-			if (actualHeight < styleHeight) {
-				if (computed.overflowY === 'hidden') {
-					changeOverflow('scroll');
-					resize();
-					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
-				}
-			} else {
-				// Normally keep overflow set to hidden, to avoid flash of scrollbar as the textarea expands.
-				if (computed.overflowY !== 'hidden') {
-					changeOverflow('hidden');
-					resize();
-					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
-				}
-			}
-
-			if (cachedHeight !== actualHeight) {
-				cachedHeight = actualHeight;
-				var evt = createEvent('autosize:resized');
-				try {
-					ta.dispatchEvent(evt);
-				} catch (err) {
-					// Firefox will throw an error on dispatchEvent for a detached element
-					// https://bugzilla.mozilla.org/show_bug.cgi?id=889376
-				}
-			}
-		}
-
-		var pageResize = function pageResize() {
-			if (ta.clientWidth !== clientWidth) {
-				update();
-			}
-		};
-
-		var destroy = function (style) {
-			window.removeEventListener('resize', pageResize, false);
-			ta.removeEventListener('input', update, false);
-			ta.removeEventListener('keyup', update, false);
-			ta.removeEventListener('autosize:destroy', destroy, false);
-			ta.removeEventListener('autosize:update', update, false);
-
-			Object.keys(style).forEach(function (key) {
-				ta.style[key] = style[key];
-			});
-
-			map.delete(ta);
-		}.bind(ta, {
-			height: ta.style.height,
-			resize: ta.style.resize,
-			overflowY: ta.style.overflowY,
-			overflowX: ta.style.overflowX,
-			wordWrap: ta.style.wordWrap
-		});
-
-		ta.addEventListener('autosize:destroy', destroy, false);
-
-		// IE9 does not fire onpropertychange or oninput for deletions,
-		// so binding to onkeyup to catch most of those events.
-		// There is no way that I know of to detect something like 'cut' in IE9.
-		if ('onpropertychange' in ta && 'oninput' in ta) {
-			ta.addEventListener('keyup', update, false);
-		}
-
-		window.addEventListener('resize', pageResize, false);
-		ta.addEventListener('input', update, false);
-		ta.addEventListener('autosize:update', update, false);
-		ta.style.overflowX = 'hidden';
-		ta.style.wordWrap = 'break-word';
-
-		map.set(ta, {
-			destroy: destroy,
-			update: update
-		});
-
-		init();
-	}
-
-	function destroy(ta) {
-		var methods = map.get(ta);
-		if (methods) {
-			methods.destroy();
-		}
-	}
-
-	function update(ta) {
-		var methods = map.get(ta);
-		if (methods) {
-			methods.update();
-		}
-	}
-
-	var autosize = null;
-
-	// Do nothing in Node.js environment and IE8 (or lower)
-	if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
-		autosize = function autosize(el) {
-			return el;
-		};
-		autosize.destroy = function (el) {
-			return el;
-		};
-		autosize.update = function (el) {
-			return el;
-		};
-	} else {
-		autosize = function autosize(el, options) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], function (x) {
-					return assign(x, options);
-				});
-			}
-			return el;
-		};
-		autosize.destroy = function (el) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], destroy);
-			}
-			return el;
-		};
-		autosize.update = function (el) {
-			if (el) {
-				Array.prototype.forEach.call(el.length ? el : [el], update);
-			}
-			return el;
-		};
-	}
-
-	exports.default = autosize;
-	module.exports = exports['default'];
-});
+/* (ignored) */
 
 /***/ }),
 
-/***/ 6109:
-/***/ ((module) => {
-
-// This code has been refactored for 140 bytes
-// You can see the original here: https://github.com/twolfson/computedStyle/blob/04cd1da2e30fa45844f95f5cb1ac898e9b9ef050/lib/computedStyle.js
-var computedStyle = function (el, prop, getComputedStyle) {
-  getComputedStyle = window.getComputedStyle;
-
-  // In one fell swoop
-  return (
-    // If we have getComputedStyle
-    getComputedStyle ?
-      // Query it
-      // TODO: From CSS-Query notes, we might need (node, null) for FF
-      getComputedStyle(el) :
-
-    // Otherwise, we are in IE and use currentStyle
-      el.currentStyle
-  )[
-    // Switch to camelCase for CSSOM
-    // DEV: Grabbed from jQuery
-    // https://github.com/jquery/jquery/blob/1.9-stable/src/css.js#L191-L194
-    // https://github.com/jquery/jquery/blob/1.9-stable/src/core.js#L593-L597
-    prop.replace(/-(\w)/gi, function (word, letter) {
-      return letter.toUpperCase();
-    })
-  ];
-};
-
-module.exports = computedStyle;
-
-
-/***/ }),
-
-/***/ 5417:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-/*istanbul ignore start*/
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports["default"] = Diff;
-
-/*istanbul ignore end*/
-function Diff() {}
-
-Diff.prototype = {
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  diff: function diff(oldString, newString) {
-    /*istanbul ignore start*/
-    var
-    /*istanbul ignore end*/
-    options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    var callback = options.callback;
-
-    if (typeof options === 'function') {
-      callback = options;
-      options = {};
-    }
-
-    this.options = options;
-    var self = this;
-
-    function done(value) {
-      if (callback) {
-        setTimeout(function () {
-          callback(undefined, value);
-        }, 0);
-        return true;
-      } else {
-        return value;
-      }
-    } // Allow subclasses to massage the input prior to running
-
-
-    oldString = this.castInput(oldString);
-    newString = this.castInput(newString);
-    oldString = this.removeEmpty(this.tokenize(oldString));
-    newString = this.removeEmpty(this.tokenize(newString));
-    var newLen = newString.length,
-        oldLen = oldString.length;
-    var editLength = 1;
-    var maxEditLength = newLen + oldLen;
-    var bestPath = [{
-      newPos: -1,
-      components: []
-    }]; // Seed editLength = 0, i.e. the content starts with the same values
-
-    var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-
-    if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
-      // Identity per the equality and tokenizer
-      return done([{
-        value: this.join(newString),
-        count: newString.length
-      }]);
-    } // Main worker method. checks all permutations of a given edit length for acceptance.
-
-
-    function execEditLength() {
-      for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
-        var basePath =
-        /*istanbul ignore start*/
-        void 0
-        /*istanbul ignore end*/
-        ;
-
-        var addPath = bestPath[diagonalPath - 1],
-            removePath = bestPath[diagonalPath + 1],
-            _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-
-        if (addPath) {
-          // No one else is going to attempt to use this value, clear it
-          bestPath[diagonalPath - 1] = undefined;
-        }
-
-        var canAdd = addPath && addPath.newPos + 1 < newLen,
-            canRemove = removePath && 0 <= _oldPos && _oldPos < oldLen;
-
-        if (!canAdd && !canRemove) {
-          // If this path is a terminal then prune
-          bestPath[diagonalPath] = undefined;
-          continue;
-        } // Select the diagonal that we want to branch from. We select the prior
-        // path whose position in the new string is the farthest from the origin
-        // and does not pass the bounds of the diff graph
-
-
-        if (!canAdd || canRemove && addPath.newPos < removePath.newPos) {
-          basePath = clonePath(removePath);
-          self.pushComponent(basePath.components, undefined, true);
-        } else {
-          basePath = addPath; // No need to clone, we've pulled it from the list
-
-          basePath.newPos++;
-          self.pushComponent(basePath.components, true, undefined);
-        }
-
-        _oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath); // If we have hit the end of both strings, then we are done
-
-        if (basePath.newPos + 1 >= newLen && _oldPos + 1 >= oldLen) {
-          return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
-        } else {
-          // Otherwise track this path as a potential candidate and continue.
-          bestPath[diagonalPath] = basePath;
-        }
-      }
-
-      editLength++;
-    } // Performs the length of edit iteration. Is a bit fugly as this has to support the
-    // sync and async mode which is never fun. Loops over execEditLength until a value
-    // is produced.
-
-
-    if (callback) {
-      (function exec() {
-        setTimeout(function () {
-          // This should not happen, but we want to be safe.
-
-          /* istanbul ignore next */
-          if (editLength > maxEditLength) {
-            return callback();
-          }
-
-          if (!execEditLength()) {
-            exec();
-          }
-        }, 0);
-      })();
-    } else {
-      while (editLength <= maxEditLength) {
-        var ret = execEditLength();
-
-        if (ret) {
-          return ret;
-        }
-      }
-    }
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  pushComponent: function pushComponent(components, added, removed) {
-    var last = components[components.length - 1];
-
-    if (last && last.added === added && last.removed === removed) {
-      // We need to clone here as the component clone operation is just
-      // as shallow array clone
-      components[components.length - 1] = {
-        count: last.count + 1,
-        added: added,
-        removed: removed
-      };
-    } else {
-      components.push({
-        count: 1,
-        added: added,
-        removed: removed
-      });
-    }
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
-    var newLen = newString.length,
-        oldLen = oldString.length,
-        newPos = basePath.newPos,
-        oldPos = newPos - diagonalPath,
-        commonCount = 0;
-
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
-      newPos++;
-      oldPos++;
-      commonCount++;
-    }
-
-    if (commonCount) {
-      basePath.components.push({
-        count: commonCount
-      });
-    }
-
-    basePath.newPos = newPos;
-    return oldPos;
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  equals: function equals(left, right) {
-    if (this.options.comparator) {
-      return this.options.comparator(left, right);
-    } else {
-      return left === right || this.options.ignoreCase && left.toLowerCase() === right.toLowerCase();
-    }
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  removeEmpty: function removeEmpty(array) {
-    var ret = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i]) {
-        ret.push(array[i]);
-      }
-    }
-
-    return ret;
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  castInput: function castInput(value) {
-    return value;
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  tokenize: function tokenize(value) {
-    return value.split('');
-  },
-
-  /*istanbul ignore start*/
-
-  /*istanbul ignore end*/
-  join: function join(chars) {
-    return chars.join('');
-  }
-};
-
-function buildValues(diff, components, newString, oldString, useLongestToken) {
-  var componentPos = 0,
-      componentLen = components.length,
-      newPos = 0,
-      oldPos = 0;
-
-  for (; componentPos < componentLen; componentPos++) {
-    var component = components[componentPos];
-
-    if (!component.removed) {
-      if (!component.added && useLongestToken) {
-        var value = newString.slice(newPos, newPos + component.count);
-        value = value.map(function (value, i) {
-          var oldValue = oldString[oldPos + i];
-          return oldValue.length > value.length ? oldValue : value;
-        });
-        component.value = diff.join(value);
-      } else {
-        component.value = diff.join(newString.slice(newPos, newPos + component.count));
-      }
-
-      newPos += component.count; // Common case
-
-      if (!component.added) {
-        oldPos += component.count;
-      }
-    } else {
-      component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
-      oldPos += component.count; // Reverse add and remove so removes are output first to match common convention
-      // The diffing algorithm is tied to add then remove output and this is the simplest
-      // route to get the desired output with minimal overhead.
-
-      if (componentPos && components[componentPos - 1].added) {
-        var tmp = components[componentPos - 1];
-        components[componentPos - 1] = components[componentPos];
-        components[componentPos] = tmp;
-      }
-    }
-  } // Special case handle for when one terminal is ignored (i.e. whitespace).
-  // For this case we merge the terminal into the prior string and drop the change.
-  // This is only available for string mode.
-
-
-  var lastComponent = components[componentLen - 1];
-
-  if (componentLen > 1 && typeof lastComponent.value === 'string' && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
-    components[componentLen - 2].value += lastComponent.value;
-    components.pop();
-  }
-
-  return components;
-}
-
-function clonePath(path) {
-  return {
-    newPos: path.newPos,
-    components: path.components.slice(0)
-  };
-}
-
-
-/***/ }),
-
-/***/ 8021:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-var __webpack_unused_export__;
-/*istanbul ignore start*/
-
-
-__webpack_unused_export__ = ({
-  value: true
-});
-exports.JJ = diffChars;
-__webpack_unused_export__ = void 0;
-
-/*istanbul ignore end*/
-var
-/*istanbul ignore start*/
-_base = _interopRequireDefault(__webpack_require__(5417))
-/*istanbul ignore end*/
-;
-
-/*istanbul ignore start*/ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/*istanbul ignore end*/
-var characterDiff = new
-/*istanbul ignore start*/
-_base
-/*istanbul ignore end*/
-.
-/*istanbul ignore start*/
-default
-/*istanbul ignore end*/
-();
-
-/*istanbul ignore start*/
-__webpack_unused_export__ = characterDiff;
-
-/*istanbul ignore end*/
-function diffChars(oldStr, newStr, options) {
-  return characterDiff.diff(oldStr, newStr, options);
-}
-
-
-/***/ }),
-
-/***/ 7734:
-/***/ ((module) => {
-
-"use strict";
-
-
-// do not edit .js files directly - edit src/index.jst
-
-
-  var envHasBigInt64Array = typeof BigInt64Array !== 'undefined';
-
-
-module.exports = function equal(a, b) {
-  if (a === b) return true;
-
-  if (a && b && typeof a == 'object' && typeof b == 'object') {
-    if (a.constructor !== b.constructor) return false;
-
-    var length, i, keys;
-    if (Array.isArray(a)) {
-      length = a.length;
-      if (length != b.length) return false;
-      for (i = length; i-- !== 0;)
-        if (!equal(a[i], b[i])) return false;
-      return true;
-    }
-
-
-    if ((a instanceof Map) && (b instanceof Map)) {
-      if (a.size !== b.size) return false;
-      for (i of a.entries())
-        if (!b.has(i[0])) return false;
-      for (i of a.entries())
-        if (!equal(i[1], b.get(i[0]))) return false;
-      return true;
-    }
-
-    if ((a instanceof Set) && (b instanceof Set)) {
-      if (a.size !== b.size) return false;
-      for (i of a.entries())
-        if (!b.has(i[0])) return false;
-      return true;
-    }
-
-    if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
-      length = a.length;
-      if (length != b.length) return false;
-      for (i = length; i-- !== 0;)
-        if (a[i] !== b[i]) return false;
-      return true;
-    }
-
-
-    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
-    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
-    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
-
-    keys = Object.keys(a);
-    length = keys.length;
-    if (length !== Object.keys(b).length) return false;
-
-    for (i = length; i-- !== 0;)
-      if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
-
-    for (i = length; i-- !== 0;) {
-      var key = keys[i];
-
-      if (!equal(a[key], b[key])) return false;
-    }
-
-    return true;
-  }
-
-  // true if both NaN, false otherwise
-  return a!==a && b!==b;
-};
-
-
-/***/ }),
-
-/***/ 5215:
-/***/ ((module) => {
-
-"use strict";
-
-
-// do not edit .js files directly - edit src/index.jst
-
-
-
-module.exports = function equal(a, b) {
-  if (a === b) return true;
-
-  if (a && b && typeof a == 'object' && typeof b == 'object') {
-    if (a.constructor !== b.constructor) return false;
-
-    var length, i, keys;
-    if (Array.isArray(a)) {
-      length = a.length;
-      if (length != b.length) return false;
-      for (i = length; i-- !== 0;)
-        if (!equal(a[i], b[i])) return false;
-      return true;
-    }
-
-
-
-    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
-    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
-    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
-
-    keys = Object.keys(a);
-    length = keys.length;
-    if (length !== Object.keys(b).length) return false;
-
-    for (i = length; i-- !== 0;)
-      if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
-
-    for (i = length; i-- !== 0;) {
-      var key = keys[i];
-
-      if (!equal(a[key], b[key])) return false;
-    }
-
-    return true;
-  }
-
-  // true if both NaN, false otherwise
-  return a!==a && b!==b;
-};
-
-
-/***/ }),
-
-/***/ 461:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-// Load in dependencies
-var computedStyle = __webpack_require__(6109);
-
-/**
- * Calculate the `line-height` of a given node
- * @param {HTMLElement} node Element to calculate line height of. Must be in the DOM.
- * @returns {Number} `line-height` of the element in pixels
- */
-function lineHeight(node) {
-  // Grab the line-height via style
-  var lnHeightStr = computedStyle(node, 'line-height');
-  var lnHeight = parseFloat(lnHeightStr, 10);
-
-  // If the lineHeight did not contain a unit (i.e. it was numeric), convert it to ems (e.g. '2.3' === '2.3em')
-  if (lnHeightStr === lnHeight + '') {
-    // Save the old lineHeight style and update the em unit to the element
-    var _lnHeightStyle = node.style.lineHeight;
-    node.style.lineHeight = lnHeightStr + 'em';
-
-    // Calculate the em based height
-    lnHeightStr = computedStyle(node, 'line-height');
-    lnHeight = parseFloat(lnHeightStr, 10);
-
-    // Revert the lineHeight style
-    if (_lnHeightStyle) {
-      node.style.lineHeight = _lnHeightStyle;
-    } else {
-      delete node.style.lineHeight;
-    }
-  }
-
-  // If the lineHeight is in `pt`, convert it to pixels (4px for 3pt)
-  // DEV: `em` units are converted to `pt` in IE6
-  // Conversion ratio from https://developer.mozilla.org/en-US/docs/Web/CSS/length
-  if (lnHeightStr.indexOf('pt') !== -1) {
-    lnHeight *= 4;
-    lnHeight /= 3;
-  // Otherwise, if the lineHeight is in `mm`, convert it to pixels (96px for 25.4mm)
-  } else if (lnHeightStr.indexOf('mm') !== -1) {
-    lnHeight *= 96;
-    lnHeight /= 25.4;
-  // Otherwise, if the lineHeight is in `cm`, convert it to pixels (96px for 2.54cm)
-  } else if (lnHeightStr.indexOf('cm') !== -1) {
-    lnHeight *= 96;
-    lnHeight /= 2.54;
-  // Otherwise, if the lineHeight is in `in`, convert it to pixels (96px for 1in)
-  } else if (lnHeightStr.indexOf('in') !== -1) {
-    lnHeight *= 96;
-  // Otherwise, if the lineHeight is in `pc`, convert it to pixels (12pt for 1pc)
-  } else if (lnHeightStr.indexOf('pc') !== -1) {
-    lnHeight *= 16;
-  }
-
-  // Continue our computation
-  lnHeight = Math.round(lnHeight);
-
-  // If the line-height is "normal", calculate by font-size
-  if (lnHeightStr === 'normal') {
-    // Create a temporary node
-    var nodeName = node.nodeName;
-    var _node = document.createElement(nodeName);
-    _node.innerHTML = '&nbsp;';
-
-    // If we have a text area, reset it to only 1 row
-    // https://github.com/twolfson/line-height/issues/4
-    if (nodeName.toUpperCase() === 'TEXTAREA') {
-      _node.setAttribute('rows', '1');
-    }
-
-    // Set the font-size of the element
-    var fontSizeStr = computedStyle(node, 'font-size');
-    _node.style.fontSize = fontSizeStr;
-
-    // Remove default padding/border which can affect offset height
-    // https://github.com/twolfson/line-height/issues/4
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetHeight
-    _node.style.padding = '0px';
-    _node.style.border = '0px';
-
-    // Append it to the body
-    var body = document.body;
-    body.appendChild(_node);
-
-    // Assume the line height of the element is the height
-    var height = _node.offsetHeight;
-    lnHeight = height;
-
-    // Remove our child from the DOM
-    body.removeChild(_node);
-  }
-
-  // Return the calculated height
-  return lnHeight;
-}
-
-// Export lineHeight
-module.exports = lineHeight;
-
-
-/***/ }),
-
-/***/ 7520:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = __webpack_require__(7191);
-
-
-/***/ }),
-
-/***/ 8202:
-/***/ ((module) => {
-
-"use strict";
-/**
- * Copyright (c) 2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @providesModule ExecutionEnvironment
- */
-
-/*jslint evil: true */
-
-
-
-var canUseDOM = !!(
-  typeof window !== 'undefined' &&
-  window.document &&
-  window.document.createElement
-);
-
-/**
- * Simple, lightweight module assisting with the detection and context of
- * Worker. Helps avoid circular dependencies and allows code to reason about
- * whether or not they are in a Worker, even if they never include the main
- * `ReactWorker` dependency.
- */
-var ExecutionEnvironment = {
-
-  canUseDOM: canUseDOM,
-
-  canUseWorkers: typeof Worker !== 'undefined',
-
-  canUseEventListeners:
-    canUseDOM && !!(window.addEventListener || window.attachEvent),
-
-  canUseViewport: canUseDOM && !!window.screen,
-
-  isInWorker: !canUseDOM // For now, this is true - might change in the future.
-
-};
-
-module.exports = ExecutionEnvironment;
-
-
-/***/ }),
-
-/***/ 2213:
-/***/ ((module) => {
-
-/**
- * Copyright 2004-present Facebook. All Rights Reserved.
- *
- * @providesModule UserAgent_DEPRECATED
- */
-
-/**
- *  Provides entirely client-side User Agent and OS detection. You should prefer
- *  the non-deprecated UserAgent module when possible, which exposes our
- *  authoritative server-side PHP-based detection to the client.
- *
- *  Usage is straightforward:
- *
- *    if (UserAgent_DEPRECATED.ie()) {
- *      //  IE
- *    }
- *
- *  You can also do version checks:
- *
- *    if (UserAgent_DEPRECATED.ie() >= 7) {
- *      //  IE7 or better
- *    }
- *
- *  The browser functions will return NaN if the browser does not match, so
- *  you can also do version compares the other way:
- *
- *    if (UserAgent_DEPRECATED.ie() < 7) {
- *      //  IE6 or worse
- *    }
- *
- *  Note that the version is a float and may include a minor version number,
- *  so you should always use range operators to perform comparisons, not
- *  strict equality.
- *
- *  **Note:** You should **strongly** prefer capability detection to browser
- *  version detection where it's reasonable:
- *
- *    http://www.quirksmode.org/js/support.html
- *
- *  Further, we have a large number of mature wrapper functions and classes
- *  which abstract away many browser irregularities. Check the documentation,
- *  grep for things, or ask on javascript@lists.facebook.com before writing yet
- *  another copy of "event || window.event".
- *
- */
-
-var _populated = false;
-
-// Browsers
-var _ie, _firefox, _opera, _webkit, _chrome;
-
-// Actual IE browser for compatibility mode
-var _ie_real_version;
-
-// Platforms
-var _osx, _windows, _linux, _android;
-
-// Architectures
-var _win64;
-
-// Devices
-var _iphone, _ipad, _native;
-
-var _mobile;
-
-function _populate() {
-  if (_populated) {
-    return;
-  }
-
-  _populated = true;
-
-  // To work around buggy JS libraries that can't handle multi-digit
-  // version numbers, Opera 10's user agent string claims it's Opera
-  // 9, then later includes a Version/X.Y field:
-  //
-  // Opera/9.80 (foo) Presto/2.2.15 Version/10.10
-  var uas = navigator.userAgent;
-  var agent = /(?:MSIE.(\d+\.\d+))|(?:(?:Firefox|GranParadiso|Iceweasel).(\d+\.\d+))|(?:Opera(?:.+Version.|.)(\d+\.\d+))|(?:AppleWebKit.(\d+(?:\.\d+)?))|(?:Trident\/\d+\.\d+.*rv:(\d+\.\d+))/.exec(uas);
-  var os    = /(Mac OS X)|(Windows)|(Linux)/.exec(uas);
-
-  _iphone = /\b(iPhone|iP[ao]d)/.exec(uas);
-  _ipad = /\b(iP[ao]d)/.exec(uas);
-  _android = /Android/i.exec(uas);
-  _native = /FBAN\/\w+;/i.exec(uas);
-  _mobile = /Mobile/i.exec(uas);
-
-  // Note that the IE team blog would have you believe you should be checking
-  // for 'Win64; x64'.  But MSDN then reveals that you can actually be coming
-  // from either x64 or ia64;  so ultimately, you should just check for Win64
-  // as in indicator of whether you're in 64-bit IE.  32-bit IE on 64-bit
-  // Windows will send 'WOW64' instead.
-  _win64 = !!(/Win64/.exec(uas));
-
-  if (agent) {
-    _ie = agent[1] ? parseFloat(agent[1]) : (
-          agent[5] ? parseFloat(agent[5]) : NaN);
-    // IE compatibility mode
-    if (_ie && document && document.documentMode) {
-      _ie = document.documentMode;
-    }
-    // grab the "true" ie version from the trident token if available
-    var trident = /(?:Trident\/(\d+.\d+))/.exec(uas);
-    _ie_real_version = trident ? parseFloat(trident[1]) + 4 : _ie;
-
-    _firefox = agent[2] ? parseFloat(agent[2]) : NaN;
-    _opera   = agent[3] ? parseFloat(agent[3]) : NaN;
-    _webkit  = agent[4] ? parseFloat(agent[4]) : NaN;
-    if (_webkit) {
-      // We do not add the regexp to the above test, because it will always
-      // match 'safari' only since 'AppleWebKit' appears before 'Chrome' in
-      // the userAgent string.
-      agent = /(?:Chrome\/(\d+\.\d+))/.exec(uas);
-      _chrome = agent && agent[1] ? parseFloat(agent[1]) : NaN;
-    } else {
-      _chrome = NaN;
-    }
-  } else {
-    _ie = _firefox = _opera = _chrome = _webkit = NaN;
-  }
-
-  if (os) {
-    if (os[1]) {
-      // Detect OS X version.  If no version number matches, set _osx to true.
-      // Version examples:  10, 10_6_1, 10.7
-      // Parses version number as a float, taking only first two sets of
-      // digits.  If only one set of digits is found, returns just the major
-      // version number.
-      var ver = /(?:Mac OS X (\d+(?:[._]\d+)?))/.exec(uas);
-
-      _osx = ver ? parseFloat(ver[1].replace('_', '.')) : true;
-    } else {
-      _osx = false;
-    }
-    _windows = !!os[2];
-    _linux   = !!os[3];
-  } else {
-    _osx = _windows = _linux = false;
-  }
-}
-
-var UserAgent_DEPRECATED = {
-
-  /**
-   *  Check if the UA is Internet Explorer.
-   *
-   *
-   *  @return float|NaN Version number (if match) or NaN.
-   */
-  ie: function() {
-    return _populate() || _ie;
-  },
-
-  /**
-   * Check if we're in Internet Explorer compatibility mode.
-   *
-   * @return bool true if in compatibility mode, false if
-   * not compatibility mode or not ie
-   */
-  ieCompatibilityMode: function() {
-    return _populate() || (_ie_real_version > _ie);
-  },
-
-
-  /**
-   * Whether the browser is 64-bit IE.  Really, this is kind of weak sauce;  we
-   * only need this because Skype can't handle 64-bit IE yet.  We need to remove
-   * this when we don't need it -- tracked by #601957.
-   */
-  ie64: function() {
-    return UserAgent_DEPRECATED.ie() && _win64;
-  },
-
-  /**
-   *  Check if the UA is Firefox.
-   *
-   *
-   *  @return float|NaN Version number (if match) or NaN.
-   */
-  firefox: function() {
-    return _populate() || _firefox;
-  },
-
-
-  /**
-   *  Check if the UA is Opera.
-   *
-   *
-   *  @return float|NaN Version number (if match) or NaN.
-   */
-  opera: function() {
-    return _populate() || _opera;
-  },
-
-
-  /**
-   *  Check if the UA is WebKit.
-   *
-   *
-   *  @return float|NaN Version number (if match) or NaN.
-   */
-  webkit: function() {
-    return _populate() || _webkit;
-  },
-
-  /**
-   *  For Push
-   *  WILL BE REMOVED VERY SOON. Use UserAgent_DEPRECATED.webkit
-   */
-  safari: function() {
-    return UserAgent_DEPRECATED.webkit();
-  },
-
-  /**
-   *  Check if the UA is a Chrome browser.
-   *
-   *
-   *  @return float|NaN Version number (if match) or NaN.
-   */
-  chrome : function() {
-    return _populate() || _chrome;
-  },
-
-
-  /**
-   *  Check if the user is running Windows.
-   *
-   *  @return bool `true' if the user's OS is Windows.
-   */
-  windows: function() {
-    return _populate() || _windows;
-  },
-
-
-  /**
-   *  Check if the user is running Mac OS X.
-   *
-   *  @return float|bool   Returns a float if a version number is detected,
-   *                       otherwise true/false.
-   */
-  osx: function() {
-    return _populate() || _osx;
-  },
-
-  /**
-   * Check if the user is running Linux.
-   *
-   * @return bool `true' if the user's OS is some flavor of Linux.
-   */
-  linux: function() {
-    return _populate() || _linux;
-  },
-
-  /**
-   * Check if the user is running on an iPhone or iPod platform.
-   *
-   * @return bool `true' if the user is running some flavor of the
-   *    iPhone OS.
-   */
-  iphone: function() {
-    return _populate() || _iphone;
-  },
-
-  mobile: function() {
-    return _populate() || (_iphone || _ipad || _android || _mobile);
-  },
-
-  nativeApp: function() {
-    // webviews inside of the native apps
-    return _populate() || _native;
-  },
-
-  android: function() {
-    return _populate() || _android;
-  },
-
-  ipad: function() {
-    return _populate() || _ipad;
-  }
-};
-
-module.exports = UserAgent_DEPRECATED;
-
-
-/***/ }),
-
-/***/ 1087:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-/**
- * Copyright 2013-2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @providesModule isEventSupported
- */
-
-
-
-var ExecutionEnvironment = __webpack_require__(8202);
-
-var useHasFeature;
-if (ExecutionEnvironment.canUseDOM) {
-  useHasFeature =
-    document.implementation &&
-    document.implementation.hasFeature &&
-    // always returns true in newer browsers as per the standard.
-    // @see http://dom.spec.whatwg.org/#dom-domimplementation-hasfeature
-    document.implementation.hasFeature('', '') !== true;
-}
-
-/**
- * Checks if an event is supported in the current execution environment.
- *
- * NOTE: This will not work correctly for non-generic events such as `change`,
- * `reset`, `load`, `error`, and `select`.
- *
- * Borrows from Modernizr.
- *
- * @param {string} eventNameSuffix Event name, e.g. "click".
- * @param {?boolean} capture Check if the capture phase is supported.
- * @return {boolean} True if the event is supported.
- * @internal
- * @license Modernizr 3.0.0pre (Custom Build) | MIT
- */
-function isEventSupported(eventNameSuffix, capture) {
-  if (!ExecutionEnvironment.canUseDOM ||
-      capture && !('addEventListener' in document)) {
-    return false;
-  }
-
-  var eventName = 'on' + eventNameSuffix;
-  var isSupported = eventName in document;
-
-  if (!isSupported) {
-    var element = document.createElement('div');
-    element.setAttribute(eventName, 'return;');
-    isSupported = typeof element[eventName] === 'function';
-  }
-
-  if (!isSupported && useHasFeature && eventNameSuffix === 'wheel') {
-    // This is the only way to test support for the `wheel` event in IE9+.
-    isSupported = document.implementation.hasFeature('Events.wheel', '3.0');
-  }
-
-  return isSupported;
-}
-
-module.exports = isEventSupported;
-
-
-/***/ }),
-
-/***/ 7191:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-/**
- * Copyright (c) 2015, Facebook, Inc.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
- * @providesModule normalizeWheel
- * @typechecks
- */
-
-
-
-var UserAgent_DEPRECATED = __webpack_require__(2213);
-
-var isEventSupported = __webpack_require__(1087);
-
-
-// Reasonable defaults
-var PIXEL_STEP  = 10;
-var LINE_HEIGHT = 40;
-var PAGE_HEIGHT = 800;
-
-/**
- * Mouse wheel (and 2-finger trackpad) support on the web sucks.  It is
- * complicated, thus this doc is long and (hopefully) detailed enough to answer
- * your questions.
- *
- * If you need to react to the mouse wheel in a predictable way, this code is
- * like your bestest friend. * hugs *
- *
- * As of today, there are 4 DOM event types you can listen to:
- *
- *   'wheel'                -- Chrome(31+), FF(17+), IE(9+)
- *   'mousewheel'           -- Chrome, IE(6+), Opera, Safari
- *   'MozMousePixelScroll'  -- FF(3.5 only!) (2010-2013) -- don't bother!
- *   'DOMMouseScroll'       -- FF(0.9.7+) since 2003
- *
- * So what to do?  The is the best:
- *
- *   normalizeWheel.getEventType();
- *
- * In your event callback, use this code to get sane interpretation of the
- * deltas.  This code will return an object with properties:
- *
- *   spinX   -- normalized spin speed (use for zoom) - x plane
- *   spinY   -- " - y plane
- *   pixelX  -- normalized distance (to pixels) - x plane
- *   pixelY  -- " - y plane
- *
- * Wheel values are provided by the browser assuming you are using the wheel to
- * scroll a web page by a number of lines or pixels (or pages).  Values can vary
- * significantly on different platforms and browsers, forgetting that you can
- * scroll at different speeds.  Some devices (like trackpads) emit more events
- * at smaller increments with fine granularity, and some emit massive jumps with
- * linear speed or acceleration.
- *
- * This code does its best to normalize the deltas for you:
- *
- *   - spin is trying to normalize how far the wheel was spun (or trackpad
- *     dragged).  This is super useful for zoom support where you want to
- *     throw away the chunky scroll steps on the PC and make those equal to
- *     the slow and smooth tiny steps on the Mac. Key data: This code tries to
- *     resolve a single slow step on a wheel to 1.
- *
- *   - pixel is normalizing the desired scroll delta in pixel units.  You'll
- *     get the crazy differences between browsers, but at least it'll be in
- *     pixels!
- *
- *   - positive value indicates scrolling DOWN/RIGHT, negative UP/LEFT.  This
- *     should translate to positive value zooming IN, negative zooming OUT.
- *     This matches the newer 'wheel' event.
- *
- * Why are there spinX, spinY (or pixels)?
- *
- *   - spinX is a 2-finger side drag on the trackpad, and a shift + wheel turn
- *     with a mouse.  It results in side-scrolling in the browser by default.
- *
- *   - spinY is what you expect -- it's the classic axis of a mouse wheel.
- *
- *   - I dropped spinZ/pixelZ.  It is supported by the DOM 3 'wheel' event and
- *     probably is by browsers in conjunction with fancy 3D controllers .. but
- *     you know.
- *
- * Implementation info:
- *
- * Examples of 'wheel' event if you scroll slowly (down) by one step with an
- * average mouse:
- *
- *   OS X + Chrome  (mouse)     -    4   pixel delta  (wheelDelta -120)
- *   OS X + Safari  (mouse)     -  N/A   pixel delta  (wheelDelta  -12)
- *   OS X + Firefox (mouse)     -    0.1 line  delta  (wheelDelta  N/A)
- *   Win8 + Chrome  (mouse)     -  100   pixel delta  (wheelDelta -120)
- *   Win8 + Firefox (mouse)     -    3   line  delta  (wheelDelta -120)
- *
- * On the trackpad:
- *
- *   OS X + Chrome  (trackpad)  -    2   pixel delta  (wheelDelta   -6)
- *   OS X + Firefox (trackpad)  -    1   pixel delta  (wheelDelta  N/A)
- *
- * On other/older browsers.. it's more complicated as there can be multiple and
- * also missing delta values.
- *
- * The 'wheel' event is more standard:
- *
- * http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
- *
- * The basics is that it includes a unit, deltaMode (pixels, lines, pages), and
- * deltaX, deltaY and deltaZ.  Some browsers provide other values to maintain
- * backward compatibility with older events.  Those other values help us
- * better normalize spin speed.  Example of what the browsers provide:
- *
- *                          | event.wheelDelta | event.detail
- *        ------------------+------------------+--------------
- *          Safari v5/OS X  |       -120       |       0
- *          Safari v5/Win7  |       -120       |       0
- *         Chrome v17/OS X  |       -120       |       0
- *         Chrome v17/Win7  |       -120       |       0
- *                IE9/Win7  |       -120       |   undefined
- *         Firefox v4/OS X  |     undefined    |       1
- *         Firefox v4/Win7  |     undefined    |       3
- *
- */
-function normalizeWheel(/*object*/ event) /*object*/ {
-  var sX = 0, sY = 0,       // spinX, spinY
-      pX = 0, pY = 0;       // pixelX, pixelY
-
-  // Legacy
-  if ('detail'      in event) { sY = event.detail; }
-  if ('wheelDelta'  in event) { sY = -event.wheelDelta / 120; }
-  if ('wheelDeltaY' in event) { sY = -event.wheelDeltaY / 120; }
-  if ('wheelDeltaX' in event) { sX = -event.wheelDeltaX / 120; }
-
-  // side scrolling on FF with DOMMouseScroll
-  if ( 'axis' in event && event.axis === event.HORIZONTAL_AXIS ) {
-    sX = sY;
-    sY = 0;
-  }
-
-  pX = sX * PIXEL_STEP;
-  pY = sY * PIXEL_STEP;
-
-  if ('deltaY' in event) { pY = event.deltaY; }
-  if ('deltaX' in event) { pX = event.deltaX; }
-
-  if ((pX || pY) && event.deltaMode) {
-    if (event.deltaMode == 1) {          // delta in LINE units
-      pX *= LINE_HEIGHT;
-      pY *= LINE_HEIGHT;
-    } else {                             // delta in PAGE units
-      pX *= PAGE_HEIGHT;
-      pY *= PAGE_HEIGHT;
-    }
-  }
-
-  // Fall-back if spin cannot be determined
-  if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
-  if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
-
-  return { spinX  : sX,
-           spinY  : sY,
-           pixelX : pX,
-           pixelY : pY };
-}
-
-
-/**
- * The best combination if you prefer spinX + spinY normalization.  It favors
- * the older DOMMouseScroll for Firefox, as FF does not include wheelDelta with
- * 'wheel' event, making spin speed determination impossible.
- */
-normalizeWheel.getEventType = function() /*string*/ {
-  return (UserAgent_DEPRECATED.firefox())
-           ? 'DOMMouseScroll'
-           : (isEventSupported('wheel'))
-               ? 'wheel'
-               : 'mousewheel';
-};
-
-module.exports = normalizeWheel;
-
-
-/***/ }),
-
-/***/ 2775:
-/***/ ((module) => {
-
-var x=String;
-var create=function() {return {isColorSupported:false,reset:x,bold:x,dim:x,italic:x,underline:x,inverse:x,hidden:x,strikethrough:x,black:x,red:x,green:x,yellow:x,blue:x,magenta:x,cyan:x,white:x,gray:x,bgBlack:x,bgRed:x,bgGreen:x,bgYellow:x,bgBlue:x,bgMagenta:x,bgCyan:x,bgWhite:x,blackBright:x,redBright:x,greenBright:x,yellowBright:x,blueBright:x,magentaBright:x,cyanBright:x,whiteBright:x,bgBlackBright:x,bgRedBright:x,bgGreenBright:x,bgYellowBright:x,bgBlueBright:x,bgMagentaBright:x,bgCyanBright:x,bgWhiteBright:x}};
-module.exports=create();
-module.exports.createColors = create;
-
-
-/***/ }),
-
-/***/ 1443:
-/***/ ((module) => {
-
-module.exports = function postcssPrefixSelector(options) {
-  const prefix = options.prefix;
-  const prefixWithSpace = /\s+$/.test(prefix) ? prefix : `${prefix} `;
-  const ignoreFiles = options.ignoreFiles ? [].concat(options.ignoreFiles) : [];
-  const includeFiles = options.includeFiles
-    ? [].concat(options.includeFiles)
-    : [];
-
-  return function (root) {
-    if (
-      ignoreFiles.length &&
-      root.source.input.file &&
-      isFileInArray(root.source.input.file, ignoreFiles)
-    ) {
-      return;
-    }
-    if (
-      includeFiles.length &&
-      root.source.input.file &&
-      !isFileInArray(root.source.input.file, includeFiles)
-    ) {
-      return;
-    }
-
-    root.walkRules((rule) => {
-      const keyframeRules = [
-        'keyframes',
-        '-webkit-keyframes',
-        '-moz-keyframes',
-        '-o-keyframes',
-        '-ms-keyframes',
-      ];
-
-      if (rule.parent && keyframeRules.includes(rule.parent.name)) {
-        return;
-      }
-
-      rule.selectors = rule.selectors.map((selector) => {
-        if (options.exclude && excludeSelector(selector, options.exclude)) {
-          return selector;
-        }
-
-        if (options.transform) {
-          return options.transform(
-            prefix,
-            selector,
-            prefixWithSpace + selector,
-            root.source.input.file,
-            rule
-          );
-        }
-
-        return prefixWithSpace + selector;
-      });
-    });
-  };
-};
-
-function isFileInArray(file, arr) {
-  return arr.some((ruleOrString) => {
-    if (ruleOrString instanceof RegExp) {
-      return ruleOrString.test(file);
-    }
-
-    return file.includes(ruleOrString);
-  });
-}
-
-function excludeSelector(selector, excludeArr) {
-  return excludeArr.some((excludeRule) => {
-    if (excludeRule instanceof RegExp) {
-      return excludeRule.test(selector);
-    }
-
-    return selector === excludeRule;
-  });
-}
-
-
-/***/ }),
-
-/***/ 5404:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-const CSSValueParser = __webpack_require__(1544)
-
-/**
- * @type {import('postcss').PluginCreator}
- */
-module.exports = (opts) => {
-
-  const DEFAULTS = {
-    skipHostRelativeUrls: true,
-  }
-  const config = Object.assign(DEFAULTS, opts)
-
-  return {
-    postcssPlugin: 'rebaseUrl',
-
-    Declaration(decl) {
-      // The faster way to find Declaration node
-      const parsedValue = CSSValueParser(decl.value)
-
-      let valueChanged = false
-      parsedValue.walk(node => {
-        if (node.type !== 'function' || node.value !== 'url') {
-          return
-        }
-
-        const urlVal = node.nodes[0].value
-
-        // bases relative URLs with rootUrl
-        const basedUrl = new URL(urlVal, opts.rootUrl)
-
-        // skip host-relative, already normalized URLs (e.g. `/images/image.jpg`, without `..`s)
-        if ((basedUrl.pathname === urlVal) && config.skipHostRelativeUrls) {
-          return false // skip this value
-        }
-
-        node.nodes[0].value = basedUrl.toString()
-        valueChanged = true
-
-        return false // do not walk deeper
-      })
-
-      if (valueChanged) {
-        decl.value = CSSValueParser.stringify(parsedValue)
-      }
-
-    }
-  }
-}
-
-module.exports.postcss = true
-
-
-/***/ }),
-
-/***/ 1544:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var parse = __webpack_require__(8491);
-var walk = __webpack_require__(3815);
-var stringify = __webpack_require__(4725);
-
-function ValueParser(value) {
-  if (this instanceof ValueParser) {
-    this.nodes = parse(value);
-    return this;
-  }
-  return new ValueParser(value);
-}
-
-ValueParser.prototype.toString = function() {
-  return Array.isArray(this.nodes) ? stringify(this.nodes) : "";
-};
-
-ValueParser.prototype.walk = function(cb, bubble) {
-  walk(this.nodes, cb, bubble);
-  return this;
-};
-
-ValueParser.unit = __webpack_require__(1524);
-
-ValueParser.walk = walk;
-
-ValueParser.stringify = stringify;
-
-module.exports = ValueParser;
-
-
-/***/ }),
-
-/***/ 8491:
-/***/ ((module) => {
-
-var openParentheses = "(".charCodeAt(0);
-var closeParentheses = ")".charCodeAt(0);
-var singleQuote = "'".charCodeAt(0);
-var doubleQuote = '"'.charCodeAt(0);
-var backslash = "\\".charCodeAt(0);
-var slash = "/".charCodeAt(0);
-var comma = ",".charCodeAt(0);
-var colon = ":".charCodeAt(0);
-var star = "*".charCodeAt(0);
-var uLower = "u".charCodeAt(0);
-var uUpper = "U".charCodeAt(0);
-var plus = "+".charCodeAt(0);
-var isUnicodeRange = /^[a-f0-9?-]+$/i;
-
-module.exports = function(input) {
-  var tokens = [];
-  var value = input;
-
-  var next,
-    quote,
-    prev,
-    token,
-    escape,
-    escapePos,
-    whitespacePos,
-    parenthesesOpenPos;
-  var pos = 0;
-  var code = value.charCodeAt(pos);
-  var max = value.length;
-  var stack = [{ nodes: tokens }];
-  var balanced = 0;
-  var parent;
-
-  var name = "";
-  var before = "";
-  var after = "";
-
-  while (pos < max) {
-    // Whitespaces
-    if (code <= 32) {
-      next = pos;
-      do {
-        next += 1;
-        code = value.charCodeAt(next);
-      } while (code <= 32);
-      token = value.slice(pos, next);
-
-      prev = tokens[tokens.length - 1];
-      if (code === closeParentheses && balanced) {
-        after = token;
-      } else if (prev && prev.type === "div") {
-        prev.after = token;
-        prev.sourceEndIndex += token.length;
-      } else if (
-        code === comma ||
-        code === colon ||
-        (code === slash &&
-          value.charCodeAt(next + 1) !== star &&
-          (!parent ||
-            (parent && parent.type === "function" && parent.value !== "calc")))
-      ) {
-        before = token;
-      } else {
-        tokens.push({
-          type: "space",
-          sourceIndex: pos,
-          sourceEndIndex: next,
-          value: token
-        });
-      }
-
-      pos = next;
-
-      // Quotes
-    } else if (code === singleQuote || code === doubleQuote) {
-      next = pos;
-      quote = code === singleQuote ? "'" : '"';
-      token = {
-        type: "string",
-        sourceIndex: pos,
-        quote: quote
-      };
-      do {
-        escape = false;
-        next = value.indexOf(quote, next + 1);
-        if (~next) {
-          escapePos = next;
-          while (value.charCodeAt(escapePos - 1) === backslash) {
-            escapePos -= 1;
-            escape = !escape;
-          }
-        } else {
-          value += quote;
-          next = value.length - 1;
-          token.unclosed = true;
-        }
-      } while (escape);
-      token.value = value.slice(pos + 1, next);
-      token.sourceEndIndex = token.unclosed ? next : next + 1;
-      tokens.push(token);
-      pos = next + 1;
-      code = value.charCodeAt(pos);
-
-      // Comments
-    } else if (code === slash && value.charCodeAt(pos + 1) === star) {
-      next = value.indexOf("*/", pos);
-
-      token = {
-        type: "comment",
-        sourceIndex: pos,
-        sourceEndIndex: next + 2
-      };
-
-      if (next === -1) {
-        token.unclosed = true;
-        next = value.length;
-        token.sourceEndIndex = next;
-      }
-
-      token.value = value.slice(pos + 2, next);
-      tokens.push(token);
-
-      pos = next + 2;
-      code = value.charCodeAt(pos);
-
-      // Operation within calc
-    } else if (
-      (code === slash || code === star) &&
-      parent &&
-      parent.type === "function" &&
-      parent.value === "calc"
-    ) {
-      token = value[pos];
-      tokens.push({
-        type: "word",
-        sourceIndex: pos - before.length,
-        sourceEndIndex: pos + token.length,
-        value: token
-      });
-      pos += 1;
-      code = value.charCodeAt(pos);
-
-      // Dividers
-    } else if (code === slash || code === comma || code === colon) {
-      token = value[pos];
-
-      tokens.push({
-        type: "div",
-        sourceIndex: pos - before.length,
-        sourceEndIndex: pos + token.length,
-        value: token,
-        before: before,
-        after: ""
-      });
-      before = "";
-
-      pos += 1;
-      code = value.charCodeAt(pos);
-
-      // Open parentheses
-    } else if (openParentheses === code) {
-      // Whitespaces after open parentheses
-      next = pos;
-      do {
-        next += 1;
-        code = value.charCodeAt(next);
-      } while (code <= 32);
-      parenthesesOpenPos = pos;
-      token = {
-        type: "function",
-        sourceIndex: pos - name.length,
-        value: name,
-        before: value.slice(parenthesesOpenPos + 1, next)
-      };
-      pos = next;
-
-      if (name === "url" && code !== singleQuote && code !== doubleQuote) {
-        next -= 1;
-        do {
-          escape = false;
-          next = value.indexOf(")", next + 1);
-          if (~next) {
-            escapePos = next;
-            while (value.charCodeAt(escapePos - 1) === backslash) {
-              escapePos -= 1;
-              escape = !escape;
-            }
-          } else {
-            value += ")";
-            next = value.length - 1;
-            token.unclosed = true;
-          }
-        } while (escape);
-        // Whitespaces before closed
-        whitespacePos = next;
-        do {
-          whitespacePos -= 1;
-          code = value.charCodeAt(whitespacePos);
-        } while (code <= 32);
-        if (parenthesesOpenPos < whitespacePos) {
-          if (pos !== whitespacePos + 1) {
-            token.nodes = [
-              {
-                type: "word",
-                sourceIndex: pos,
-                sourceEndIndex: whitespacePos + 1,
-                value: value.slice(pos, whitespacePos + 1)
-              }
-            ];
-          } else {
-            token.nodes = [];
-          }
-          if (token.unclosed && whitespacePos + 1 !== next) {
-            token.after = "";
-            token.nodes.push({
-              type: "space",
-              sourceIndex: whitespacePos + 1,
-              sourceEndIndex: next,
-              value: value.slice(whitespacePos + 1, next)
-            });
-          } else {
-            token.after = value.slice(whitespacePos + 1, next);
-            token.sourceEndIndex = next;
-          }
-        } else {
-          token.after = "";
-          token.nodes = [];
-        }
-        pos = next + 1;
-        token.sourceEndIndex = token.unclosed ? next : pos;
-        code = value.charCodeAt(pos);
-        tokens.push(token);
-      } else {
-        balanced += 1;
-        token.after = "";
-        token.sourceEndIndex = pos + 1;
-        tokens.push(token);
-        stack.push(token);
-        tokens = token.nodes = [];
-        parent = token;
-      }
-      name = "";
-
-      // Close parentheses
-    } else if (closeParentheses === code && balanced) {
-      pos += 1;
-      code = value.charCodeAt(pos);
-
-      parent.after = after;
-      parent.sourceEndIndex += after.length;
-      after = "";
-      balanced -= 1;
-      stack[stack.length - 1].sourceEndIndex = pos;
-      stack.pop();
-      parent = stack[balanced];
-      tokens = parent.nodes;
-
-      // Words
-    } else {
-      next = pos;
-      do {
-        if (code === backslash) {
-          next += 1;
-        }
-        next += 1;
-        code = value.charCodeAt(next);
-      } while (
-        next < max &&
-        !(
-          code <= 32 ||
-          code === singleQuote ||
-          code === doubleQuote ||
-          code === comma ||
-          code === colon ||
-          code === slash ||
-          code === openParentheses ||
-          (code === star &&
-            parent &&
-            parent.type === "function" &&
-            parent.value === "calc") ||
-          (code === slash &&
-            parent.type === "function" &&
-            parent.value === "calc") ||
-          (code === closeParentheses && balanced)
-        )
-      );
-      token = value.slice(pos, next);
-
-      if (openParentheses === code) {
-        name = token;
-      } else if (
-        (uLower === token.charCodeAt(0) || uUpper === token.charCodeAt(0)) &&
-        plus === token.charCodeAt(1) &&
-        isUnicodeRange.test(token.slice(2))
-      ) {
-        tokens.push({
-          type: "unicode-range",
-          sourceIndex: pos,
-          sourceEndIndex: next,
-          value: token
-        });
-      } else {
-        tokens.push({
-          type: "word",
-          sourceIndex: pos,
-          sourceEndIndex: next,
-          value: token
-        });
-      }
-
-      pos = next;
-    }
-  }
-
-  for (pos = stack.length - 1; pos; pos -= 1) {
-    stack[pos].unclosed = true;
-    stack[pos].sourceEndIndex = value.length;
-  }
-
-  return stack[0].nodes;
-};
-
-
-/***/ }),
-
-/***/ 4725:
-/***/ ((module) => {
-
-function stringifyNode(node, custom) {
-  var type = node.type;
-  var value = node.value;
-  var buf;
-  var customResult;
-
-  if (custom && (customResult = custom(node)) !== undefined) {
-    return customResult;
-  } else if (type === "word" || type === "space") {
-    return value;
-  } else if (type === "string") {
-    buf = node.quote || "";
-    return buf + value + (node.unclosed ? "" : buf);
-  } else if (type === "comment") {
-    return "/*" + value + (node.unclosed ? "" : "*/");
-  } else if (type === "div") {
-    return (node.before || "") + value + (node.after || "");
-  } else if (Array.isArray(node.nodes)) {
-    buf = stringify(node.nodes, custom);
-    if (type !== "function") {
-      return buf;
-    }
-    return (
-      value +
-      "(" +
-      (node.before || "") +
-      buf +
-      (node.after || "") +
-      (node.unclosed ? "" : ")")
-    );
-  }
-  return value;
-}
-
-function stringify(nodes, custom) {
-  var result, i;
-
-  if (Array.isArray(nodes)) {
-    result = "";
-    for (i = nodes.length - 1; ~i; i -= 1) {
-      result = stringifyNode(nodes[i], custom) + result;
-    }
-    return result;
-  }
-  return stringifyNode(nodes, custom);
-}
-
-module.exports = stringify;
-
-
-/***/ }),
-
-/***/ 1524:
-/***/ ((module) => {
-
-var minus = "-".charCodeAt(0);
-var plus = "+".charCodeAt(0);
-var dot = ".".charCodeAt(0);
-var exp = "e".charCodeAt(0);
-var EXP = "E".charCodeAt(0);
-
-// Check if three code points would start a number
-// https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
-function likeNumber(value) {
-  var code = value.charCodeAt(0);
-  var nextCode;
-
-  if (code === plus || code === minus) {
-    nextCode = value.charCodeAt(1);
-
-    if (nextCode >= 48 && nextCode <= 57) {
-      return true;
-    }
-
-    var nextNextCode = value.charCodeAt(2);
-
-    if (nextCode === dot && nextNextCode >= 48 && nextNextCode <= 57) {
-      return true;
-    }
-
-    return false;
-  }
-
-  if (code === dot) {
-    nextCode = value.charCodeAt(1);
-
-    if (nextCode >= 48 && nextCode <= 57) {
-      return true;
-    }
-
-    return false;
-  }
-
-  if (code >= 48 && code <= 57) {
-    return true;
-  }
-
-  return false;
-}
-
-// Consume a number
-// https://www.w3.org/TR/css-syntax-3/#consume-number
-module.exports = function(value) {
-  var pos = 0;
-  var length = value.length;
-  var code;
-  var nextCode;
-  var nextNextCode;
-
-  if (length === 0 || !likeNumber(value)) {
-    return false;
-  }
-
-  code = value.charCodeAt(pos);
-
-  if (code === plus || code === minus) {
-    pos++;
-  }
-
-  while (pos < length) {
-    code = value.charCodeAt(pos);
-
-    if (code < 48 || code > 57) {
-      break;
-    }
-
-    pos += 1;
-  }
-
-  code = value.charCodeAt(pos);
-  nextCode = value.charCodeAt(pos + 1);
-
-  if (code === dot && nextCode >= 48 && nextCode <= 57) {
-    pos += 2;
-
-    while (pos < length) {
-      code = value.charCodeAt(pos);
-
-      if (code < 48 || code > 57) {
-        break;
-      }
-
-      pos += 1;
-    }
-  }
-
-  code = value.charCodeAt(pos);
-  nextCode = value.charCodeAt(pos + 1);
-  nextNextCode = value.charCodeAt(pos + 2);
-
-  if (
-    (code === exp || code === EXP) &&
-    ((nextCode >= 48 && nextCode <= 57) ||
-      ((nextCode === plus || nextCode === minus) &&
-        nextNextCode >= 48 &&
-        nextNextCode <= 57))
-  ) {
-    pos += nextCode === plus || nextCode === minus ? 3 : 2;
-
-    while (pos < length) {
-      code = value.charCodeAt(pos);
-
-      if (code < 48 || code > 57) {
-        break;
-      }
-
-      pos += 1;
-    }
-  }
-
-  return {
-    number: value.slice(0, pos),
-    unit: value.slice(pos)
-  };
-};
-
-
-/***/ }),
-
-/***/ 3815:
-/***/ ((module) => {
-
-module.exports = function walk(nodes, cb, bubble) {
-  var i, max, node, result;
-
-  for (i = 0, max = nodes.length; i < max; i += 1) {
-    node = nodes[i];
-    if (!bubble) {
-      result = cb(node, i, nodes);
-    }
-
-    if (
-      result !== false &&
-      node.type === "function" &&
-      Array.isArray(node.nodes)
-    ) {
-      walk(node.nodes, cb, bubble);
-    }
-
-    if (bubble) {
-      cb(node, i, nodes);
-    }
-  }
-};
-
-
-/***/ }),
-
-/***/ 1326:
+/***/ 271:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -2260,503 +16,396 @@ module.exports = function walk(nodes, cb, bubble) {
 
 let Container = __webpack_require__(683)
 
-class AtRule extends Container {
+let LazyResult, Processor
+
+class Document extends Container {
   constructor(defaults) {
-    super(defaults)
-    this.type = 'atrule'
+    // type needs to be passed to super, otherwise child roots won't be normalized correctly
+    super({ type: 'document', ...defaults })
+
+    if (!this.nodes) {
+      this.nodes = []
+    }
   }
 
-  append(...children) {
-    if (!this.proxyOf.nodes) this.nodes = []
-    return super.append(...children)
-  }
+  toResult(opts = {}) {
+    let lazy = new LazyResult(new Processor(), this, opts)
 
-  prepend(...children) {
-    if (!this.proxyOf.nodes) this.nodes = []
-    return super.prepend(...children)
+    return lazy.stringify()
   }
 }
 
-module.exports = AtRule
-AtRule.default = AtRule
+Document.registerLazyResult = dependant => {
+  LazyResult = dependant
+}
 
-Container.registerAtRule(AtRule)
+Document.registerProcessor = dependant => {
+  Processor = dependant
+}
+
+module.exports = Document
+Document.default = Document
 
 
 /***/ }),
 
-/***/ 6589:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ 346:
+/***/ ((module) => {
 
 "use strict";
 
 
-let Node = __webpack_require__(7490)
-
-class Comment extends Node {
-  constructor(defaults) {
-    super(defaults)
-    this.type = 'comment'
-  }
+const DEFAULT_RAW = {
+  after: '\n',
+  beforeClose: '\n',
+  beforeComment: '\n',
+  beforeDecl: '\n',
+  beforeOpen: ' ',
+  beforeRule: '\n',
+  colon: ': ',
+  commentLeft: ' ',
+  commentRight: ' ',
+  emptyBody: '',
+  indent: '    ',
+  semicolon: false
 }
 
-module.exports = Comment
-Comment.default = Comment
-
-
-/***/ }),
-
-/***/ 683:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-let Comment = __webpack_require__(6589)
-let Declaration = __webpack_require__(1516)
-let Node = __webpack_require__(7490)
-let { isClean, my } = __webpack_require__(1381)
-
-let AtRule, parse, Root, Rule
-
-function cleanSource(nodes) {
-  return nodes.map(i => {
-    if (i.nodes) i.nodes = cleanSource(i.nodes)
-    delete i.source
-    return i
-  })
+function capitalize(str) {
+  return str[0].toUpperCase() + str.slice(1)
 }
 
-function markTreeDirty(node) {
-  node[isClean] = false
-  if (node.proxyOf.nodes) {
-    for (let i of node.proxyOf.nodes) {
-      markTreeDirty(i)
-    }
-  }
-}
-
-class Container extends Node {
-  append(...children) {
-    for (let child of children) {
-      let nodes = this.normalize(child, this.last)
-      for (let node of nodes) this.proxyOf.nodes.push(node)
-    }
-
-    this.markDirty()
-
-    return this
+class Stringifier {
+  constructor(builder) {
+    this.builder = builder
   }
 
-  cleanRaws(keepBetween) {
-    super.cleanRaws(keepBetween)
-    if (this.nodes) {
-      for (let node of this.nodes) node.cleanRaws(keepBetween)
-    }
-  }
+  atrule(node, semicolon) {
+    let name = '@' + node.name
+    let params = node.params ? this.rawValue(node, 'params') : ''
 
-  each(callback) {
-    if (!this.proxyOf.nodes) return undefined
-    let iterator = this.getIterator()
-
-    let index, result
-    while (this.indexes[iterator] < this.proxyOf.nodes.length) {
-      index = this.indexes[iterator]
-      result = callback(this.proxyOf.nodes[index], index)
-      if (result === false) break
-
-      this.indexes[iterator] += 1
+    if (typeof node.raws.afterName !== 'undefined') {
+      name += node.raws.afterName
+    } else if (params) {
+      name += ' '
     }
 
-    delete this.indexes[iterator]
-    return result
-  }
-
-  every(condition) {
-    return this.nodes.every(condition)
-  }
-
-  getIterator() {
-    if (!this.lastEach) this.lastEach = 0
-    if (!this.indexes) this.indexes = {}
-
-    this.lastEach += 1
-    let iterator = this.lastEach
-    this.indexes[iterator] = 0
-
-    return iterator
-  }
-
-  getProxyProcessor() {
-    return {
-      get(node, prop) {
-        if (prop === 'proxyOf') {
-          return node
-        } else if (!node[prop]) {
-          return node[prop]
-        } else if (
-          prop === 'each' ||
-          (typeof prop === 'string' && prop.startsWith('walk'))
-        ) {
-          return (...args) => {
-            return node[prop](
-              ...args.map(i => {
-                if (typeof i === 'function') {
-                  return (child, index) => i(child.toProxy(), index)
-                } else {
-                  return i
-                }
-              })
-            )
-          }
-        } else if (prop === 'every' || prop === 'some') {
-          return cb => {
-            return node[prop]((child, ...other) =>
-              cb(child.toProxy(), ...other)
-            )
-          }
-        } else if (prop === 'root') {
-          return () => node.root().toProxy()
-        } else if (prop === 'nodes') {
-          return node.nodes.map(i => i.toProxy())
-        } else if (prop === 'first' || prop === 'last') {
-          return node[prop].toProxy()
-        } else {
-          return node[prop]
-        }
-      },
-
-      set(node, prop, value) {
-        if (node[prop] === value) return true
-        node[prop] = value
-        if (prop === 'name' || prop === 'params' || prop === 'selector') {
-          node.markDirty()
-        }
-        return true
-      }
-    }
-  }
-
-  index(child) {
-    if (typeof child === 'number') return child
-    if (child.proxyOf) child = child.proxyOf
-    return this.proxyOf.nodes.indexOf(child)
-  }
-
-  insertAfter(exist, add) {
-    let existIndex = this.index(exist)
-    let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse()
-    existIndex = this.index(exist)
-    for (let node of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node)
-
-    let index
-    for (let id in this.indexes) {
-      index = this.indexes[id]
-      if (existIndex < index) {
-        this.indexes[id] = index + nodes.length
-      }
-    }
-
-    this.markDirty()
-
-    return this
-  }
-
-  insertBefore(exist, add) {
-    let existIndex = this.index(exist)
-    let type = existIndex === 0 ? 'prepend' : false
-    let nodes = this.normalize(
-      add,
-      this.proxyOf.nodes[existIndex],
-      type
-    ).reverse()
-    existIndex = this.index(exist)
-    for (let node of nodes) this.proxyOf.nodes.splice(existIndex, 0, node)
-
-    let index
-    for (let id in this.indexes) {
-      index = this.indexes[id]
-      if (existIndex <= index) {
-        this.indexes[id] = index + nodes.length
-      }
-    }
-
-    this.markDirty()
-
-    return this
-  }
-
-  normalize(nodes, sample) {
-    if (typeof nodes === 'string') {
-      nodes = cleanSource(parse(nodes).nodes)
-    } else if (typeof nodes === 'undefined') {
-      nodes = []
-    } else if (Array.isArray(nodes)) {
-      nodes = nodes.slice(0)
-      for (let i of nodes) {
-        if (i.parent) i.parent.removeChild(i, 'ignore')
-      }
-    } else if (nodes.type === 'root' && this.type !== 'document') {
-      nodes = nodes.nodes.slice(0)
-      for (let i of nodes) {
-        if (i.parent) i.parent.removeChild(i, 'ignore')
-      }
-    } else if (nodes.type) {
-      nodes = [nodes]
-    } else if (nodes.prop) {
-      if (typeof nodes.value === 'undefined') {
-        throw new Error('Value field is missed in node creation')
-      } else if (typeof nodes.value !== 'string') {
-        nodes.value = String(nodes.value)
-      }
-      nodes = [new Declaration(nodes)]
-    } else if (nodes.selector || nodes.selectors) {
-      nodes = [new Rule(nodes)]
-    } else if (nodes.name) {
-      nodes = [new AtRule(nodes)]
-    } else if (nodes.text) {
-      nodes = [new Comment(nodes)]
+    if (node.nodes) {
+      this.block(node, name + params)
     } else {
-      throw new Error('Unknown node type in node creation')
+      let end = (node.raws.between || '') + (semicolon ? ';' : '')
+      this.builder(name + params + end, node)
+    }
+  }
+
+  beforeAfter(node, detect) {
+    let value
+    if (node.type === 'decl') {
+      value = this.raw(node, null, 'beforeDecl')
+    } else if (node.type === 'comment') {
+      value = this.raw(node, null, 'beforeComment')
+    } else if (detect === 'before') {
+      value = this.raw(node, null, 'beforeRule')
+    } else {
+      value = this.raw(node, null, 'beforeClose')
     }
 
-    let processed = nodes.map(i => {
-      /* c8 ignore next */
-      if (!i[my]) Container.rebuild(i)
-      i = i.proxyOf
-      if (i.parent) i.parent.removeChild(i)
-      if (i[isClean]) markTreeDirty(i)
+    let buf = node.parent
+    let depth = 0
+    while (buf && buf.type !== 'root') {
+      depth += 1
+      buf = buf.parent
+    }
 
-      if (!i.raws) i.raws = {}
-      if (typeof i.raws.before === 'undefined') {
-        if (sample && typeof sample.raws.before !== 'undefined') {
-          i.raws.before = sample.raws.before.replace(/\S/g, '')
+    if (value.includes('\n')) {
+      let indent = this.raw(node, null, 'indent')
+      if (indent.length) {
+        for (let step = 0; step < depth; step++) value += indent
+      }
+    }
+
+    return value
+  }
+
+  block(node, start) {
+    let between = this.raw(node, 'between', 'beforeOpen')
+    this.builder(start + between + '{', node, 'start')
+
+    let after
+    if (node.nodes && node.nodes.length) {
+      this.body(node)
+      after = this.raw(node, 'after')
+    } else {
+      after = this.raw(node, 'after', 'emptyBody')
+    }
+
+    if (after) this.builder(after)
+    this.builder('}', node, 'end')
+  }
+
+  body(node) {
+    let last = node.nodes.length - 1
+    while (last > 0) {
+      if (node.nodes[last].type !== 'comment') break
+      last -= 1
+    }
+
+    let semicolon = this.raw(node, 'semicolon')
+    for (let i = 0; i < node.nodes.length; i++) {
+      let child = node.nodes[i]
+      let before = this.raw(child, 'before')
+      if (before) this.builder(before)
+      this.stringify(child, last !== i || semicolon)
+    }
+  }
+
+  comment(node) {
+    let left = this.raw(node, 'left', 'commentLeft')
+    let right = this.raw(node, 'right', 'commentRight')
+    this.builder('/*' + left + node.text + right + '*/', node)
+  }
+
+  decl(node, semicolon) {
+    let between = this.raw(node, 'between', 'colon')
+    let string = node.prop + between + this.rawValue(node, 'value')
+
+    if (node.important) {
+      string += node.raws.important || ' !important'
+    }
+
+    if (semicolon) string += ';'
+    this.builder(string, node)
+  }
+
+  document(node) {
+    this.body(node)
+  }
+
+  raw(node, own, detect) {
+    let value
+    if (!detect) detect = own
+
+    // Already had
+    if (own) {
+      value = node.raws[own]
+      if (typeof value !== 'undefined') return value
+    }
+
+    let parent = node.parent
+
+    if (detect === 'before') {
+      // Hack for first rule in CSS
+      if (!parent || (parent.type === 'root' && parent.first === node)) {
+        return ''
+      }
+
+      // `root` nodes in `document` should use only their own raws
+      if (parent && parent.type === 'document') {
+        return ''
+      }
+    }
+
+    // Floating child without parent
+    if (!parent) return DEFAULT_RAW[detect]
+
+    // Detect style by other nodes
+    let root = node.root()
+    if (!root.rawCache) root.rawCache = {}
+    if (typeof root.rawCache[detect] !== 'undefined') {
+      return root.rawCache[detect]
+    }
+
+    if (detect === 'before' || detect === 'after') {
+      return this.beforeAfter(node, detect)
+    } else {
+      let method = 'raw' + capitalize(detect)
+      if (this[method]) {
+        value = this[method](root, node)
+      } else {
+        root.walk(i => {
+          value = i.raws[own]
+          if (typeof value !== 'undefined') return false
+        })
+      }
+    }
+
+    if (typeof value === 'undefined') value = DEFAULT_RAW[detect]
+
+    root.rawCache[detect] = value
+    return value
+  }
+
+  rawBeforeClose(root) {
+    let value
+    root.walk(i => {
+      if (i.nodes && i.nodes.length > 0) {
+        if (typeof i.raws.after !== 'undefined') {
+          value = i.raws.after
+          if (value.includes('\n')) {
+            value = value.replace(/[^\n]+$/, '')
+          }
+          return false
         }
       }
-      i.parent = this.proxyOf
-      return i
     })
-
-    return processed
+    if (value) value = value.replace(/\S/g, '')
+    return value
   }
 
-  prepend(...children) {
-    children = children.reverse()
-    for (let child of children) {
-      let nodes = this.normalize(child, this.first, 'prepend').reverse()
-      for (let node of nodes) this.proxyOf.nodes.unshift(node)
-      for (let id in this.indexes) {
-        this.indexes[id] = this.indexes[id] + nodes.length
-      }
-    }
-
-    this.markDirty()
-
-    return this
-  }
-
-  push(child) {
-    child.parent = this
-    this.proxyOf.nodes.push(child)
-    return this
-  }
-
-  removeAll() {
-    for (let node of this.proxyOf.nodes) node.parent = undefined
-    this.proxyOf.nodes = []
-
-    this.markDirty()
-
-    return this
-  }
-
-  removeChild(child) {
-    child = this.index(child)
-    this.proxyOf.nodes[child].parent = undefined
-    this.proxyOf.nodes.splice(child, 1)
-
-    let index
-    for (let id in this.indexes) {
-      index = this.indexes[id]
-      if (index >= child) {
-        this.indexes[id] = index - 1
-      }
-    }
-
-    this.markDirty()
-
-    return this
-  }
-
-  replaceValues(pattern, opts, callback) {
-    if (!callback) {
-      callback = opts
-      opts = {}
-    }
-
-    this.walkDecls(decl => {
-      if (opts.props && !opts.props.includes(decl.prop)) return
-      if (opts.fast && !decl.value.includes(opts.fast)) return
-
-      decl.value = decl.value.replace(pattern, callback)
-    })
-
-    this.markDirty()
-
-    return this
-  }
-
-  some(condition) {
-    return this.nodes.some(condition)
-  }
-
-  walk(callback) {
-    return this.each((child, i) => {
-      let result
-      try {
-        result = callback(child, i)
-      } catch (e) {
-        throw child.addToError(e)
-      }
-      if (result !== false && child.walk) {
-        result = child.walk(callback)
-      }
-
-      return result
-    })
-  }
-
-  walkAtRules(name, callback) {
-    if (!callback) {
-      callback = name
-      return this.walk((child, i) => {
-        if (child.type === 'atrule') {
-          return callback(child, i)
+  rawBeforeComment(root, node) {
+    let value
+    root.walkComments(i => {
+      if (typeof i.raws.before !== 'undefined') {
+        value = i.raws.before
+        if (value.includes('\n')) {
+          value = value.replace(/[^\n]+$/, '')
         }
-      })
-    }
-    if (name instanceof RegExp) {
-      return this.walk((child, i) => {
-        if (child.type === 'atrule' && name.test(child.name)) {
-          return callback(child, i)
-        }
-      })
-    }
-    return this.walk((child, i) => {
-      if (child.type === 'atrule' && child.name === name) {
-        return callback(child, i)
+        return false
       }
     })
+    if (typeof value === 'undefined') {
+      value = this.raw(node, null, 'beforeDecl')
+    } else if (value) {
+      value = value.replace(/\S/g, '')
+    }
+    return value
   }
 
-  walkComments(callback) {
-    return this.walk((child, i) => {
-      if (child.type === 'comment') {
-        return callback(child, i)
+  rawBeforeDecl(root, node) {
+    let value
+    root.walkDecls(i => {
+      if (typeof i.raws.before !== 'undefined') {
+        value = i.raws.before
+        if (value.includes('\n')) {
+          value = value.replace(/[^\n]+$/, '')
+        }
+        return false
       }
     })
+    if (typeof value === 'undefined') {
+      value = this.raw(node, null, 'beforeRule')
+    } else if (value) {
+      value = value.replace(/\S/g, '')
+    }
+    return value
   }
 
-  walkDecls(prop, callback) {
-    if (!callback) {
-      callback = prop
-      return this.walk((child, i) => {
-        if (child.type === 'decl') {
-          return callback(child, i)
-        }
-      })
-    }
-    if (prop instanceof RegExp) {
-      return this.walk((child, i) => {
-        if (child.type === 'decl' && prop.test(child.prop)) {
-          return callback(child, i)
-        }
-      })
-    }
-    return this.walk((child, i) => {
-      if (child.type === 'decl' && child.prop === prop) {
-        return callback(child, i)
+  rawBeforeOpen(root) {
+    let value
+    root.walk(i => {
+      if (i.type !== 'decl') {
+        value = i.raws.between
+        if (typeof value !== 'undefined') return false
       }
     })
+    return value
   }
 
-  walkRules(selector, callback) {
-    if (!callback) {
-      callback = selector
-
-      return this.walk((child, i) => {
-        if (child.type === 'rule') {
-          return callback(child, i)
+  rawBeforeRule(root) {
+    let value
+    root.walk(i => {
+      if (i.nodes && (i.parent !== root || root.first !== i)) {
+        if (typeof i.raws.before !== 'undefined') {
+          value = i.raws.before
+          if (value.includes('\n')) {
+            value = value.replace(/[^\n]+$/, '')
+          }
+          return false
         }
-      })
-    }
-    if (selector instanceof RegExp) {
-      return this.walk((child, i) => {
-        if (child.type === 'rule' && selector.test(child.selector)) {
-          return callback(child, i)
-        }
-      })
-    }
-    return this.walk((child, i) => {
-      if (child.type === 'rule' && child.selector === selector) {
-        return callback(child, i)
       }
     })
+    if (value) value = value.replace(/\S/g, '')
+    return value
   }
 
-  get first() {
-    if (!this.proxyOf.nodes) return undefined
-    return this.proxyOf.nodes[0]
+  rawColon(root) {
+    let value
+    root.walkDecls(i => {
+      if (typeof i.raws.between !== 'undefined') {
+        value = i.raws.between.replace(/[^\s:]/g, '')
+        return false
+      }
+    })
+    return value
   }
 
-  get last() {
-    if (!this.proxyOf.nodes) return undefined
-    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1]
+  rawEmptyBody(root) {
+    let value
+    root.walk(i => {
+      if (i.nodes && i.nodes.length === 0) {
+        value = i.raws.after
+        if (typeof value !== 'undefined') return false
+      }
+    })
+    return value
+  }
+
+  rawIndent(root) {
+    if (root.raws.indent) return root.raws.indent
+    let value
+    root.walk(i => {
+      let p = i.parent
+      if (p && p !== root && p.parent && p.parent === root) {
+        if (typeof i.raws.before !== 'undefined') {
+          let parts = i.raws.before.split('\n')
+          value = parts[parts.length - 1]
+          value = value.replace(/\S/g, '')
+          return false
+        }
+      }
+    })
+    return value
+  }
+
+  rawSemicolon(root) {
+    let value
+    root.walk(i => {
+      if (i.nodes && i.nodes.length && i.last.type === 'decl') {
+        value = i.raws.semicolon
+        if (typeof value !== 'undefined') return false
+      }
+    })
+    return value
+  }
+
+  rawValue(node, prop) {
+    let value = node[prop]
+    let raw = node.raws[prop]
+    if (raw && raw.value === value) {
+      return raw.raw
+    }
+
+    return value
+  }
+
+  root(node) {
+    this.body(node)
+    if (node.raws.after) this.builder(node.raws.after)
+  }
+
+  rule(node) {
+    this.block(node, this.rawValue(node, 'selector'))
+    if (node.raws.ownSemicolon) {
+      this.builder(node.raws.ownSemicolon, node, 'end')
+    }
+  }
+
+  stringify(node, semicolon) {
+    /* c8 ignore start */
+    if (!this[node.type]) {
+      throw new Error(
+        'Unknown AST node type ' +
+          node.type +
+          '. ' +
+          'Maybe you need to change PostCSS stringifier.'
+      )
+    }
+    /* c8 ignore stop */
+    this[node.type](node, semicolon)
   }
 }
 
-Container.registerParse = dependant => {
-  parse = dependant
-}
-
-Container.registerRule = dependant => {
-  Rule = dependant
-}
-
-Container.registerAtRule = dependant => {
-  AtRule = dependant
-}
-
-Container.registerRoot = dependant => {
-  Root = dependant
-}
-
-module.exports = Container
-Container.default = Container
-
-/* c8 ignore start */
-Container.rebuild = node => {
-  if (node.type === 'atrule') {
-    Object.setPrototypeOf(node, AtRule.prototype)
-  } else if (node.type === 'rule') {
-    Object.setPrototypeOf(node, Rule.prototype)
-  } else if (node.type === 'decl') {
-    Object.setPrototypeOf(node, Declaration.prototype)
-  } else if (node.type === 'comment') {
-    Object.setPrototypeOf(node, Comment.prototype)
-  } else if (node.type === 'root') {
-    Object.setPrototypeOf(node, Root.prototype)
-  }
-
-  node[my] = true
-
-  if (node.nodes) {
-    node.nodes.forEach(child => {
-      Container.rebuild(child)
-    })
-  }
-}
-/* c8 ignore stop */
+module.exports = Stringifier
+Stringifier.default = Stringifier
 
 
 /***/ }),
@@ -2902,335 +551,6 @@ CssSyntaxError.default = CssSyntaxError
 
 /***/ }),
 
-/***/ 1516:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-let Node = __webpack_require__(7490)
-
-class Declaration extends Node {
-  constructor(defaults) {
-    if (
-      defaults &&
-      typeof defaults.value !== 'undefined' &&
-      typeof defaults.value !== 'string'
-    ) {
-      defaults = { ...defaults, value: String(defaults.value) }
-    }
-    super(defaults)
-    this.type = 'decl'
-  }
-
-  get variable() {
-    return this.prop.startsWith('--') || this.prop[0] === '$'
-  }
-}
-
-module.exports = Declaration
-Declaration.default = Declaration
-
-
-/***/ }),
-
-/***/ 271:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-let Container = __webpack_require__(683)
-
-let LazyResult, Processor
-
-class Document extends Container {
-  constructor(defaults) {
-    // type needs to be passed to super, otherwise child roots won't be normalized correctly
-    super({ type: 'document', ...defaults })
-
-    if (!this.nodes) {
-      this.nodes = []
-    }
-  }
-
-  toResult(opts = {}) {
-    let lazy = new LazyResult(new Processor(), this, opts)
-
-    return lazy.stringify()
-  }
-}
-
-Document.registerLazyResult = dependant => {
-  LazyResult = dependant
-}
-
-Document.registerProcessor = dependant => {
-  Processor = dependant
-}
-
-module.exports = Document
-Document.default = Document
-
-
-/***/ }),
-
-/***/ 5380:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-let { nanoid } = __webpack_require__(5042)
-let { isAbsolute, resolve } = __webpack_require__(197)
-let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(1866)
-let { fileURLToPath, pathToFileURL } = __webpack_require__(2739)
-
-let CssSyntaxError = __webpack_require__(356)
-let PreviousMap = __webpack_require__(5696)
-let terminalHighlight = __webpack_require__(9746)
-
-let fromOffsetCache = Symbol('fromOffsetCache')
-
-let sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator)
-let pathAvailable = Boolean(resolve && isAbsolute)
-
-class Input {
-  constructor(css, opts = {}) {
-    if (
-      css === null ||
-      typeof css === 'undefined' ||
-      (typeof css === 'object' && !css.toString)
-    ) {
-      throw new Error(`PostCSS received ${css} instead of CSS string`)
-    }
-
-    this.css = css.toString()
-
-    if (this.css[0] === '\uFEFF' || this.css[0] === '\uFFFE') {
-      this.hasBOM = true
-      this.css = this.css.slice(1)
-    } else {
-      this.hasBOM = false
-    }
-
-    if (opts.from) {
-      if (
-        !pathAvailable ||
-        /^\w+:\/\//.test(opts.from) ||
-        isAbsolute(opts.from)
-      ) {
-        this.file = opts.from
-      } else {
-        this.file = resolve(opts.from)
-      }
-    }
-
-    if (pathAvailable && sourceMapAvailable) {
-      let map = new PreviousMap(this.css, opts)
-      if (map.text) {
-        this.map = map
-        let file = map.consumer().file
-        if (!this.file && file) this.file = this.mapResolve(file)
-      }
-    }
-
-    if (!this.file) {
-      this.id = '<input css ' + nanoid(6) + '>'
-    }
-    if (this.map) this.map.file = this.from
-  }
-
-  error(message, line, column, opts = {}) {
-    let endColumn, endLine, result
-
-    if (line && typeof line === 'object') {
-      let start = line
-      let end = column
-      if (typeof start.offset === 'number') {
-        let pos = this.fromOffset(start.offset)
-        line = pos.line
-        column = pos.col
-      } else {
-        line = start.line
-        column = start.column
-      }
-      if (typeof end.offset === 'number') {
-        let pos = this.fromOffset(end.offset)
-        endLine = pos.line
-        endColumn = pos.col
-      } else {
-        endLine = end.line
-        endColumn = end.column
-      }
-    } else if (!column) {
-      let pos = this.fromOffset(line)
-      line = pos.line
-      column = pos.col
-    }
-
-    let origin = this.origin(line, column, endLine, endColumn)
-    if (origin) {
-      result = new CssSyntaxError(
-        message,
-        origin.endLine === undefined
-          ? origin.line
-          : { column: origin.column, line: origin.line },
-        origin.endLine === undefined
-          ? origin.column
-          : { column: origin.endColumn, line: origin.endLine },
-        origin.source,
-        origin.file,
-        opts.plugin
-      )
-    } else {
-      result = new CssSyntaxError(
-        message,
-        endLine === undefined ? line : { column, line },
-        endLine === undefined ? column : { column: endColumn, line: endLine },
-        this.css,
-        this.file,
-        opts.plugin
-      )
-    }
-
-    result.input = { column, endColumn, endLine, line, source: this.css }
-    if (this.file) {
-      if (pathToFileURL) {
-        result.input.url = pathToFileURL(this.file).toString()
-      }
-      result.input.file = this.file
-    }
-
-    return result
-  }
-
-  fromOffset(offset) {
-    let lastLine, lineToIndex
-    if (!this[fromOffsetCache]) {
-      let lines = this.css.split('\n')
-      lineToIndex = new Array(lines.length)
-      let prevIndex = 0
-
-      for (let i = 0, l = lines.length; i < l; i++) {
-        lineToIndex[i] = prevIndex
-        prevIndex += lines[i].length + 1
-      }
-
-      this[fromOffsetCache] = lineToIndex
-    } else {
-      lineToIndex = this[fromOffsetCache]
-    }
-    lastLine = lineToIndex[lineToIndex.length - 1]
-
-    let min = 0
-    if (offset >= lastLine) {
-      min = lineToIndex.length - 1
-    } else {
-      let max = lineToIndex.length - 2
-      let mid
-      while (min < max) {
-        mid = min + ((max - min) >> 1)
-        if (offset < lineToIndex[mid]) {
-          max = mid - 1
-        } else if (offset >= lineToIndex[mid + 1]) {
-          min = mid + 1
-        } else {
-          min = mid
-          break
-        }
-      }
-    }
-    return {
-      col: offset - lineToIndex[min] + 1,
-      line: min + 1
-    }
-  }
-
-  mapResolve(file) {
-    if (/^\w+:\/\//.test(file)) {
-      return file
-    }
-    return resolve(this.map.consumer().sourceRoot || this.map.root || '.', file)
-  }
-
-  origin(line, column, endLine, endColumn) {
-    if (!this.map) return false
-    let consumer = this.map.consumer()
-
-    let from = consumer.originalPositionFor({ column, line })
-    if (!from.source) return false
-
-    let to
-    if (typeof endLine === 'number') {
-      to = consumer.originalPositionFor({ column: endColumn, line: endLine })
-    }
-
-    let fromUrl
-
-    if (isAbsolute(from.source)) {
-      fromUrl = pathToFileURL(from.source)
-    } else {
-      fromUrl = new URL(
-        from.source,
-        this.map.consumer().sourceRoot || pathToFileURL(this.map.mapFile)
-      )
-    }
-
-    let result = {
-      column: from.column,
-      endColumn: to && to.column,
-      endLine: to && to.line,
-      line: from.line,
-      url: fromUrl.toString()
-    }
-
-    if (fromUrl.protocol === 'file:') {
-      if (fileURLToPath) {
-        result.file = fileURLToPath(fromUrl)
-      } else {
-        /* c8 ignore next 2 */
-        throw new Error(`file: protocol is not available in this PostCSS build`)
-      }
-    }
-
-    let source = consumer.sourceContentFor(from.source)
-    if (source) result.source = source
-
-    return result
-  }
-
-  toJSON() {
-    let json = {}
-    for (let name of ['hasBOM', 'css', 'file', 'id']) {
-      if (this[name] != null) {
-        json[name] = this[name]
-      }
-    }
-    if (this.map) {
-      json.map = { ...this.map }
-      if (json.map.consumerCache) {
-        json.map.consumerCache = undefined
-      }
-    }
-    return json
-  }
-
-  get from() {
-    return this.file || this.id
-  }
-}
-
-module.exports = Input
-Input.default = Input
-
-if (terminalHighlight && terminalHighlight.registerInput) {
-  terminalHighlight.registerInput(Input)
-}
-
-
-/***/ }),
-
 /***/ 448:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
@@ -3342,6 +662,38 @@ function cleanMarks(node) {
 let postcss = {}
 
 class LazyResult {
+  get content() {
+    return this.stringify().content
+  }
+
+  get css() {
+    return this.stringify().css
+  }
+
+  get map() {
+    return this.stringify().map
+  }
+
+  get messages() {
+    return this.sync().messages
+  }
+
+  get opts() {
+    return this.result.opts
+  }
+
+  get processor() {
+    return this.result.processor
+  }
+
+  get root() {
+    return this.sync().root
+  }
+
+  get [Symbol.toStringTag]() {
+    return 'LazyResult'
+  }
+
   constructor(processor, css, opts) {
     this.stringified = false
     this.processed = false
@@ -3714,38 +1066,6 @@ class LazyResult {
   warnings() {
     return this.sync().warnings()
   }
-
-  get content() {
-    return this.stringify().content
-  }
-
-  get css() {
-    return this.stringify().css
-  }
-
-  get map() {
-    return this.stringify().map
-  }
-
-  get messages() {
-    return this.sync().messages
-  }
-
-  get opts() {
-    return this.result.opts
-  }
-
-  get processor() {
-    return this.result.processor
-  }
-
-  get root() {
-    return this.sync().root
-  }
-
-  get [Symbol.toStringTag]() {
-    return 'LazyResult'
-  }
 }
 
 LazyResult.registerPostcss = dependant => {
@@ -3761,69 +1081,1057 @@ Document.registerLazyResult(LazyResult)
 
 /***/ }),
 
-/***/ 7374:
+/***/ 461:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+// Load in dependencies
+var computedStyle = __webpack_require__(6109);
+
+/**
+ * Calculate the `line-height` of a given node
+ * @param {HTMLElement} node Element to calculate line height of. Must be in the DOM.
+ * @returns {Number} `line-height` of the element in pixels
+ */
+function lineHeight(node) {
+  // Grab the line-height via style
+  var lnHeightStr = computedStyle(node, 'line-height');
+  var lnHeight = parseFloat(lnHeightStr, 10);
+
+  // If the lineHeight did not contain a unit (i.e. it was numeric), convert it to ems (e.g. '2.3' === '2.3em')
+  if (lnHeightStr === lnHeight + '') {
+    // Save the old lineHeight style and update the em unit to the element
+    var _lnHeightStyle = node.style.lineHeight;
+    node.style.lineHeight = lnHeightStr + 'em';
+
+    // Calculate the em based height
+    lnHeightStr = computedStyle(node, 'line-height');
+    lnHeight = parseFloat(lnHeightStr, 10);
+
+    // Revert the lineHeight style
+    if (_lnHeightStyle) {
+      node.style.lineHeight = _lnHeightStyle;
+    } else {
+      delete node.style.lineHeight;
+    }
+  }
+
+  // If the lineHeight is in `pt`, convert it to pixels (4px for 3pt)
+  // DEV: `em` units are converted to `pt` in IE6
+  // Conversion ratio from https://developer.mozilla.org/en-US/docs/Web/CSS/length
+  if (lnHeightStr.indexOf('pt') !== -1) {
+    lnHeight *= 4;
+    lnHeight /= 3;
+  // Otherwise, if the lineHeight is in `mm`, convert it to pixels (96px for 25.4mm)
+  } else if (lnHeightStr.indexOf('mm') !== -1) {
+    lnHeight *= 96;
+    lnHeight /= 25.4;
+  // Otherwise, if the lineHeight is in `cm`, convert it to pixels (96px for 2.54cm)
+  } else if (lnHeightStr.indexOf('cm') !== -1) {
+    lnHeight *= 96;
+    lnHeight /= 2.54;
+  // Otherwise, if the lineHeight is in `in`, convert it to pixels (96px for 1in)
+  } else if (lnHeightStr.indexOf('in') !== -1) {
+    lnHeight *= 96;
+  // Otherwise, if the lineHeight is in `pc`, convert it to pixels (12pt for 1pc)
+  } else if (lnHeightStr.indexOf('pc') !== -1) {
+    lnHeight *= 16;
+  }
+
+  // Continue our computation
+  lnHeight = Math.round(lnHeight);
+
+  // If the line-height is "normal", calculate by font-size
+  if (lnHeightStr === 'normal') {
+    // Create a temporary node
+    var nodeName = node.nodeName;
+    var _node = document.createElement(nodeName);
+    _node.innerHTML = '&nbsp;';
+
+    // If we have a text area, reset it to only 1 row
+    // https://github.com/twolfson/line-height/issues/4
+    if (nodeName.toUpperCase() === 'TEXTAREA') {
+      _node.setAttribute('rows', '1');
+    }
+
+    // Set the font-size of the element
+    var fontSizeStr = computedStyle(node, 'font-size');
+    _node.style.fontSize = fontSizeStr;
+
+    // Remove default padding/border which can affect offset height
+    // https://github.com/twolfson/line-height/issues/4
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/offsetHeight
+    _node.style.padding = '0px';
+    _node.style.border = '0px';
+
+    // Append it to the body
+    var body = document.body;
+    body.appendChild(_node);
+
+    // Assume the line height of the element is the height
+    var height = _node.offsetHeight;
+    lnHeight = height;
+
+    // Remove our child from the DOM
+    body.removeChild(_node);
+  }
+
+  // Return the calculated height
+  return lnHeight;
+}
+
+// Export lineHeight
+module.exports = lineHeight;
+
+
+/***/ }),
+
+/***/ 628:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+
+var ReactPropTypesSecret = __webpack_require__(4067);
+
+function emptyFunction() {}
+function emptyFunctionWithReset() {}
+emptyFunctionWithReset.resetWarningCache = emptyFunction;
+
+module.exports = function() {
+  function shim(props, propName, componentName, location, propFullName, secret) {
+    if (secret === ReactPropTypesSecret) {
+      // It is still safe when called from React.
+      return;
+    }
+    var err = new Error(
+      'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
+      'Use PropTypes.checkPropTypes() to call them. ' +
+      'Read more at http://fb.me/use-check-prop-types'
+    );
+    err.name = 'Invariant Violation';
+    throw err;
+  };
+  shim.isRequired = shim;
+  function getShim() {
+    return shim;
+  };
+  // Important!
+  // Keep this list in sync with production version in `./factoryWithTypeCheckers.js`.
+  var ReactPropTypes = {
+    array: shim,
+    bigint: shim,
+    bool: shim,
+    func: shim,
+    number: shim,
+    object: shim,
+    string: shim,
+    symbol: shim,
+
+    any: shim,
+    arrayOf: getShim,
+    element: shim,
+    elementType: shim,
+    instanceOf: getShim,
+    node: shim,
+    objectOf: getShim,
+    oneOf: getShim,
+    oneOfType: getShim,
+    shape: getShim,
+    exact: getShim,
+
+    checkPropTypes: emptyFunctionWithReset,
+    resetWarningCache: emptyFunction
+  };
+
+  ReactPropTypes.PropTypes = ReactPropTypes;
+
+  return ReactPropTypes;
+};
+
+
+/***/ }),
+
+/***/ 633:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Stringifier = __webpack_require__(346)
+
+function stringify(node, builder) {
+  let str = new Stringifier(builder)
+  str.stringify(node)
+}
+
+module.exports = stringify
+stringify.default = stringify
+
+
+/***/ }),
+
+/***/ 683:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Comment = __webpack_require__(6589)
+let Declaration = __webpack_require__(1516)
+let Node = __webpack_require__(7490)
+let { isClean, my } = __webpack_require__(1381)
+
+let AtRule, parse, Root, Rule
+
+function cleanSource(nodes) {
+  return nodes.map(i => {
+    if (i.nodes) i.nodes = cleanSource(i.nodes)
+    delete i.source
+    return i
+  })
+}
+
+function markTreeDirty(node) {
+  node[isClean] = false
+  if (node.proxyOf.nodes) {
+    for (let i of node.proxyOf.nodes) {
+      markTreeDirty(i)
+    }
+  }
+}
+
+class Container extends Node {
+  get first() {
+    if (!this.proxyOf.nodes) return undefined
+    return this.proxyOf.nodes[0]
+  }
+
+  get last() {
+    if (!this.proxyOf.nodes) return undefined
+    return this.proxyOf.nodes[this.proxyOf.nodes.length - 1]
+  }
+
+  append(...children) {
+    for (let child of children) {
+      let nodes = this.normalize(child, this.last)
+      for (let node of nodes) this.proxyOf.nodes.push(node)
+    }
+
+    this.markDirty()
+
+    return this
+  }
+
+  cleanRaws(keepBetween) {
+    super.cleanRaws(keepBetween)
+    if (this.nodes) {
+      for (let node of this.nodes) node.cleanRaws(keepBetween)
+    }
+  }
+
+  each(callback) {
+    if (!this.proxyOf.nodes) return undefined
+    let iterator = this.getIterator()
+
+    let index, result
+    while (this.indexes[iterator] < this.proxyOf.nodes.length) {
+      index = this.indexes[iterator]
+      result = callback(this.proxyOf.nodes[index], index)
+      if (result === false) break
+
+      this.indexes[iterator] += 1
+    }
+
+    delete this.indexes[iterator]
+    return result
+  }
+
+  every(condition) {
+    return this.nodes.every(condition)
+  }
+
+  getIterator() {
+    if (!this.lastEach) this.lastEach = 0
+    if (!this.indexes) this.indexes = {}
+
+    this.lastEach += 1
+    let iterator = this.lastEach
+    this.indexes[iterator] = 0
+
+    return iterator
+  }
+
+  getProxyProcessor() {
+    return {
+      get(node, prop) {
+        if (prop === 'proxyOf') {
+          return node
+        } else if (!node[prop]) {
+          return node[prop]
+        } else if (
+          prop === 'each' ||
+          (typeof prop === 'string' && prop.startsWith('walk'))
+        ) {
+          return (...args) => {
+            return node[prop](
+              ...args.map(i => {
+                if (typeof i === 'function') {
+                  return (child, index) => i(child.toProxy(), index)
+                } else {
+                  return i
+                }
+              })
+            )
+          }
+        } else if (prop === 'every' || prop === 'some') {
+          return cb => {
+            return node[prop]((child, ...other) =>
+              cb(child.toProxy(), ...other)
+            )
+          }
+        } else if (prop === 'root') {
+          return () => node.root().toProxy()
+        } else if (prop === 'nodes') {
+          return node.nodes.map(i => i.toProxy())
+        } else if (prop === 'first' || prop === 'last') {
+          return node[prop].toProxy()
+        } else {
+          return node[prop]
+        }
+      },
+
+      set(node, prop, value) {
+        if (node[prop] === value) return true
+        node[prop] = value
+        if (prop === 'name' || prop === 'params' || prop === 'selector') {
+          node.markDirty()
+        }
+        return true
+      }
+    }
+  }
+
+  index(child) {
+    if (typeof child === 'number') return child
+    if (child.proxyOf) child = child.proxyOf
+    return this.proxyOf.nodes.indexOf(child)
+  }
+
+  insertAfter(exist, add) {
+    let existIndex = this.index(exist)
+    let nodes = this.normalize(add, this.proxyOf.nodes[existIndex]).reverse()
+    existIndex = this.index(exist)
+    for (let node of nodes) this.proxyOf.nodes.splice(existIndex + 1, 0, node)
+
+    let index
+    for (let id in this.indexes) {
+      index = this.indexes[id]
+      if (existIndex < index) {
+        this.indexes[id] = index + nodes.length
+      }
+    }
+
+    this.markDirty()
+
+    return this
+  }
+
+  insertBefore(exist, add) {
+    let existIndex = this.index(exist)
+    let type = existIndex === 0 ? 'prepend' : false
+    let nodes = this.normalize(
+      add,
+      this.proxyOf.nodes[existIndex],
+      type
+    ).reverse()
+    existIndex = this.index(exist)
+    for (let node of nodes) this.proxyOf.nodes.splice(existIndex, 0, node)
+
+    let index
+    for (let id in this.indexes) {
+      index = this.indexes[id]
+      if (existIndex <= index) {
+        this.indexes[id] = index + nodes.length
+      }
+    }
+
+    this.markDirty()
+
+    return this
+  }
+
+  normalize(nodes, sample) {
+    if (typeof nodes === 'string') {
+      nodes = cleanSource(parse(nodes).nodes)
+    } else if (typeof nodes === 'undefined') {
+      nodes = []
+    } else if (Array.isArray(nodes)) {
+      nodes = nodes.slice(0)
+      for (let i of nodes) {
+        if (i.parent) i.parent.removeChild(i, 'ignore')
+      }
+    } else if (nodes.type === 'root' && this.type !== 'document') {
+      nodes = nodes.nodes.slice(0)
+      for (let i of nodes) {
+        if (i.parent) i.parent.removeChild(i, 'ignore')
+      }
+    } else if (nodes.type) {
+      nodes = [nodes]
+    } else if (nodes.prop) {
+      if (typeof nodes.value === 'undefined') {
+        throw new Error('Value field is missed in node creation')
+      } else if (typeof nodes.value !== 'string') {
+        nodes.value = String(nodes.value)
+      }
+      nodes = [new Declaration(nodes)]
+    } else if (nodes.selector || nodes.selectors) {
+      nodes = [new Rule(nodes)]
+    } else if (nodes.name) {
+      nodes = [new AtRule(nodes)]
+    } else if (nodes.text) {
+      nodes = [new Comment(nodes)]
+    } else {
+      throw new Error('Unknown node type in node creation')
+    }
+
+    let processed = nodes.map(i => {
+      /* c8 ignore next */
+      if (!i[my]) Container.rebuild(i)
+      i = i.proxyOf
+      if (i.parent) i.parent.removeChild(i)
+      if (i[isClean]) markTreeDirty(i)
+
+      if (!i.raws) i.raws = {}
+      if (typeof i.raws.before === 'undefined') {
+        if (sample && typeof sample.raws.before !== 'undefined') {
+          i.raws.before = sample.raws.before.replace(/\S/g, '')
+        }
+      }
+      i.parent = this.proxyOf
+      return i
+    })
+
+    return processed
+  }
+
+  prepend(...children) {
+    children = children.reverse()
+    for (let child of children) {
+      let nodes = this.normalize(child, this.first, 'prepend').reverse()
+      for (let node of nodes) this.proxyOf.nodes.unshift(node)
+      for (let id in this.indexes) {
+        this.indexes[id] = this.indexes[id] + nodes.length
+      }
+    }
+
+    this.markDirty()
+
+    return this
+  }
+
+  push(child) {
+    child.parent = this
+    this.proxyOf.nodes.push(child)
+    return this
+  }
+
+  removeAll() {
+    for (let node of this.proxyOf.nodes) node.parent = undefined
+    this.proxyOf.nodes = []
+
+    this.markDirty()
+
+    return this
+  }
+
+  removeChild(child) {
+    child = this.index(child)
+    this.proxyOf.nodes[child].parent = undefined
+    this.proxyOf.nodes.splice(child, 1)
+
+    let index
+    for (let id in this.indexes) {
+      index = this.indexes[id]
+      if (index >= child) {
+        this.indexes[id] = index - 1
+      }
+    }
+
+    this.markDirty()
+
+    return this
+  }
+
+  replaceValues(pattern, opts, callback) {
+    if (!callback) {
+      callback = opts
+      opts = {}
+    }
+
+    this.walkDecls(decl => {
+      if (opts.props && !opts.props.includes(decl.prop)) return
+      if (opts.fast && !decl.value.includes(opts.fast)) return
+
+      decl.value = decl.value.replace(pattern, callback)
+    })
+
+    this.markDirty()
+
+    return this
+  }
+
+  some(condition) {
+    return this.nodes.some(condition)
+  }
+
+  walk(callback) {
+    return this.each((child, i) => {
+      let result
+      try {
+        result = callback(child, i)
+      } catch (e) {
+        throw child.addToError(e)
+      }
+      if (result !== false && child.walk) {
+        result = child.walk(callback)
+      }
+
+      return result
+    })
+  }
+
+  walkAtRules(name, callback) {
+    if (!callback) {
+      callback = name
+      return this.walk((child, i) => {
+        if (child.type === 'atrule') {
+          return callback(child, i)
+        }
+      })
+    }
+    if (name instanceof RegExp) {
+      return this.walk((child, i) => {
+        if (child.type === 'atrule' && name.test(child.name)) {
+          return callback(child, i)
+        }
+      })
+    }
+    return this.walk((child, i) => {
+      if (child.type === 'atrule' && child.name === name) {
+        return callback(child, i)
+      }
+    })
+  }
+
+  walkComments(callback) {
+    return this.walk((child, i) => {
+      if (child.type === 'comment') {
+        return callback(child, i)
+      }
+    })
+  }
+
+  walkDecls(prop, callback) {
+    if (!callback) {
+      callback = prop
+      return this.walk((child, i) => {
+        if (child.type === 'decl') {
+          return callback(child, i)
+        }
+      })
+    }
+    if (prop instanceof RegExp) {
+      return this.walk((child, i) => {
+        if (child.type === 'decl' && prop.test(child.prop)) {
+          return callback(child, i)
+        }
+      })
+    }
+    return this.walk((child, i) => {
+      if (child.type === 'decl' && child.prop === prop) {
+        return callback(child, i)
+      }
+    })
+  }
+
+  walkRules(selector, callback) {
+    if (!callback) {
+      callback = selector
+
+      return this.walk((child, i) => {
+        if (child.type === 'rule') {
+          return callback(child, i)
+        }
+      })
+    }
+    if (selector instanceof RegExp) {
+      return this.walk((child, i) => {
+        if (child.type === 'rule' && selector.test(child.selector)) {
+          return callback(child, i)
+        }
+      })
+    }
+    return this.walk((child, i) => {
+      if (child.type === 'rule' && child.selector === selector) {
+        return callback(child, i)
+      }
+    })
+  }
+}
+
+Container.registerParse = dependant => {
+  parse = dependant
+}
+
+Container.registerRule = dependant => {
+  Rule = dependant
+}
+
+Container.registerAtRule = dependant => {
+  AtRule = dependant
+}
+
+Container.registerRoot = dependant => {
+  Root = dependant
+}
+
+module.exports = Container
+Container.default = Container
+
+/* c8 ignore start */
+Container.rebuild = node => {
+  if (node.type === 'atrule') {
+    Object.setPrototypeOf(node, AtRule.prototype)
+  } else if (node.type === 'rule') {
+    Object.setPrototypeOf(node, Rule.prototype)
+  } else if (node.type === 'decl') {
+    Object.setPrototypeOf(node, Declaration.prototype)
+  } else if (node.type === 'comment') {
+    Object.setPrototypeOf(node, Comment.prototype)
+  } else if (node.type === 'root') {
+    Object.setPrototypeOf(node, Root.prototype)
+  }
+
+  node[my] = true
+
+  if (node.nodes) {
+    node.nodes.forEach(child => {
+      Container.rebuild(child)
+    })
+  }
+}
+/* c8 ignore stop */
+
+
+/***/ }),
+
+/***/ 1087:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+/**
+ * Copyright 2013-2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @providesModule isEventSupported
+ */
+
+
+
+var ExecutionEnvironment = __webpack_require__(8202);
+
+var useHasFeature;
+if (ExecutionEnvironment.canUseDOM) {
+  useHasFeature =
+    document.implementation &&
+    document.implementation.hasFeature &&
+    // always returns true in newer browsers as per the standard.
+    // @see http://dom.spec.whatwg.org/#dom-domimplementation-hasfeature
+    document.implementation.hasFeature('', '') !== true;
+}
+
+/**
+ * Checks if an event is supported in the current execution environment.
+ *
+ * NOTE: This will not work correctly for non-generic events such as `change`,
+ * `reset`, `load`, `error`, and `select`.
+ *
+ * Borrows from Modernizr.
+ *
+ * @param {string} eventNameSuffix Event name, e.g. "click".
+ * @param {?boolean} capture Check if the capture phase is supported.
+ * @return {boolean} True if the event is supported.
+ * @internal
+ * @license Modernizr 3.0.0pre (Custom Build) | MIT
+ */
+function isEventSupported(eventNameSuffix, capture) {
+  if (!ExecutionEnvironment.canUseDOM ||
+      capture && !('addEventListener' in document)) {
+    return false;
+  }
+
+  var eventName = 'on' + eventNameSuffix;
+  var isSupported = eventName in document;
+
+  if (!isSupported) {
+    var element = document.createElement('div');
+    element.setAttribute(eventName, 'return;');
+    isSupported = typeof element[eventName] === 'function';
+  }
+
+  if (!isSupported && useHasFeature && eventNameSuffix === 'wheel') {
+    // This is the only way to test support for the `wheel` event in IE9+.
+    isSupported = document.implementation.hasFeature('Events.wheel', '3.0');
+  }
+
+  return isSupported;
+}
+
+module.exports = isEventSupported;
+
+
+/***/ }),
+
+/***/ 1326:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Container = __webpack_require__(683)
+
+class AtRule extends Container {
+  constructor(defaults) {
+    super(defaults)
+    this.type = 'atrule'
+  }
+
+  append(...children) {
+    if (!this.proxyOf.nodes) this.nodes = []
+    return super.append(...children)
+  }
+
+  prepend(...children) {
+    if (!this.proxyOf.nodes) this.nodes = []
+    return super.prepend(...children)
+  }
+}
+
+module.exports = AtRule
+AtRule.default = AtRule
+
+Container.registerAtRule(AtRule)
+
+
+/***/ }),
+
+/***/ 1381:
 /***/ ((module) => {
 
 "use strict";
 
 
-let list = {
-  comma(string) {
-    return list.split(string, [','], true)
-  },
+module.exports.isClean = Symbol('isClean')
 
-  space(string) {
-    let spaces = [' ', '\n', '\t']
-    return list.split(string, spaces)
-  },
+module.exports.my = Symbol('my')
 
-  split(string, separators, last) {
-    let array = []
-    let current = ''
-    let split = false
 
-    let func = 0
-    let inQuote = false
-    let prevQuote = ''
-    let escape = false
+/***/ }),
 
-    for (let letter of string) {
-      if (escape) {
-        escape = false
-      } else if (letter === '\\') {
-        escape = true
-      } else if (inQuote) {
-        if (letter === prevQuote) {
-          inQuote = false
-        }
-      } else if (letter === '"' || letter === "'") {
-        inQuote = true
-        prevQuote = letter
-      } else if (letter === '(') {
-        func += 1
-      } else if (letter === ')') {
-        if (func > 0) func -= 1
-      } else if (func === 0) {
-        if (separators.includes(letter)) split = true
-      }
+/***/ 1443:
+/***/ ((module) => {
 
-      if (split) {
-        if (current !== '') array.push(current.trim())
-        current = ''
-        split = false
-      } else {
-        current += letter
-      }
+module.exports = function postcssPrefixSelector(options) {
+  const prefix = options.prefix;
+  const prefixWithSpace = /\s+$/.test(prefix) ? prefix : `${prefix} `;
+  const ignoreFiles = options.ignoreFiles ? [].concat(options.ignoreFiles) : [];
+  const includeFiles = options.includeFiles
+    ? [].concat(options.includeFiles)
+    : [];
+
+  return function (root) {
+    if (
+      ignoreFiles.length &&
+      root.source.input.file &&
+      isFileInArray(root.source.input.file, ignoreFiles)
+    ) {
+      return;
+    }
+    if (
+      includeFiles.length &&
+      root.source.input.file &&
+      !isFileInArray(root.source.input.file, includeFiles)
+    ) {
+      return;
     }
 
-    if (last || current !== '') array.push(current.trim())
-    return array
+    root.walkRules((rule) => {
+      const keyframeRules = [
+        'keyframes',
+        '-webkit-keyframes',
+        '-moz-keyframes',
+        '-o-keyframes',
+        '-ms-keyframes',
+      ];
+
+      if (rule.parent && keyframeRules.includes(rule.parent.name)) {
+        return;
+      }
+
+      rule.selectors = rule.selectors.map((selector) => {
+        if (options.exclude && excludeSelector(selector, options.exclude)) {
+          return selector;
+        }
+
+        if (options.transform) {
+          return options.transform(
+            prefix,
+            selector,
+            prefixWithSpace + selector,
+            root.source.input.file,
+            rule
+          );
+        }
+
+        return prefixWithSpace + selector;
+      });
+    });
+  };
+};
+
+function isFileInArray(file, arr) {
+  return arr.some((ruleOrString) => {
+    if (ruleOrString instanceof RegExp) {
+      return ruleOrString.test(file);
+    }
+
+    return file.includes(ruleOrString);
+  });
+}
+
+function excludeSelector(selector, excludeArr) {
+  return excludeArr.some((excludeRule) => {
+    if (excludeRule instanceof RegExp) {
+      return excludeRule.test(selector);
+    }
+
+    return selector === excludeRule;
+  });
+}
+
+
+/***/ }),
+
+/***/ 1516:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Node = __webpack_require__(7490)
+
+class Declaration extends Node {
+  get variable() {
+    return this.prop.startsWith('--') || this.prop[0] === '$'
+  }
+
+  constructor(defaults) {
+    if (
+      defaults &&
+      typeof defaults.value !== 'undefined' &&
+      typeof defaults.value !== 'string'
+    ) {
+      defaults = { ...defaults, value: String(defaults.value) }
+    }
+    super(defaults)
+    this.type = 'decl'
   }
 }
 
-module.exports = list
-list.default = list
+module.exports = Declaration
+Declaration.default = Declaration
 
+
+/***/ }),
+
+/***/ 1524:
+/***/ ((module) => {
+
+var minus = "-".charCodeAt(0);
+var plus = "+".charCodeAt(0);
+var dot = ".".charCodeAt(0);
+var exp = "e".charCodeAt(0);
+var EXP = "E".charCodeAt(0);
+
+// Check if three code points would start a number
+// https://www.w3.org/TR/css-syntax-3/#starts-with-a-number
+function likeNumber(value) {
+  var code = value.charCodeAt(0);
+  var nextCode;
+
+  if (code === plus || code === minus) {
+    nextCode = value.charCodeAt(1);
+
+    if (nextCode >= 48 && nextCode <= 57) {
+      return true;
+    }
+
+    var nextNextCode = value.charCodeAt(2);
+
+    if (nextCode === dot && nextNextCode >= 48 && nextNextCode <= 57) {
+      return true;
+    }
+
+    return false;
+  }
+
+  if (code === dot) {
+    nextCode = value.charCodeAt(1);
+
+    if (nextCode >= 48 && nextCode <= 57) {
+      return true;
+    }
+
+    return false;
+  }
+
+  if (code >= 48 && code <= 57) {
+    return true;
+  }
+
+  return false;
+}
+
+// Consume a number
+// https://www.w3.org/TR/css-syntax-3/#consume-number
+module.exports = function(value) {
+  var pos = 0;
+  var length = value.length;
+  var code;
+  var nextCode;
+  var nextNextCode;
+
+  if (length === 0 || !likeNumber(value)) {
+    return false;
+  }
+
+  code = value.charCodeAt(pos);
+
+  if (code === plus || code === minus) {
+    pos++;
+  }
+
+  while (pos < length) {
+    code = value.charCodeAt(pos);
+
+    if (code < 48 || code > 57) {
+      break;
+    }
+
+    pos += 1;
+  }
+
+  code = value.charCodeAt(pos);
+  nextCode = value.charCodeAt(pos + 1);
+
+  if (code === dot && nextCode >= 48 && nextCode <= 57) {
+    pos += 2;
+
+    while (pos < length) {
+      code = value.charCodeAt(pos);
+
+      if (code < 48 || code > 57) {
+        break;
+      }
+
+      pos += 1;
+    }
+  }
+
+  code = value.charCodeAt(pos);
+  nextCode = value.charCodeAt(pos + 1);
+  nextNextCode = value.charCodeAt(pos + 2);
+
+  if (
+    (code === exp || code === EXP) &&
+    ((nextCode >= 48 && nextCode <= 57) ||
+      ((nextCode === plus || nextCode === minus) &&
+        nextNextCode >= 48 &&
+        nextNextCode <= 57))
+  ) {
+    pos += nextCode === plus || nextCode === minus ? 3 : 2;
+
+    while (pos < length) {
+      code = value.charCodeAt(pos);
+
+      if (code < 48 || code > 57) {
+        break;
+      }
+
+      pos += 1;
+    }
+  }
+
+  return {
+    number: value.slice(0, pos),
+    unit: value.slice(pos)
+  };
+};
+
+
+/***/ }),
+
+/***/ 1544:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var parse = __webpack_require__(8491);
+var walk = __webpack_require__(3815);
+var stringify = __webpack_require__(4725);
+
+function ValueParser(value) {
+  if (this instanceof ValueParser) {
+    this.nodes = parse(value);
+    return this;
+  }
+  return new ValueParser(value);
+}
+
+ValueParser.prototype.toString = function() {
+  return Array.isArray(this.nodes) ? stringify(this.nodes) : "";
+};
+
+ValueParser.prototype.walk = function(cb, bubble) {
+  walk(this.nodes, cb, bubble);
+  return this;
+};
+
+ValueParser.unit = __webpack_require__(1524);
+
+ValueParser.walk = walk;
+
+ValueParser.stringify = stringify;
+
+module.exports = ValueParser;
+
+
+/***/ }),
+
+/***/ 1609:
+/***/ ((module) => {
+
+"use strict";
+module.exports = window["React"];
 
 /***/ }),
 
@@ -4203,604 +2511,640 @@ module.exports = MapGenerator
 
 /***/ }),
 
-/***/ 7661:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ 1866:
+/***/ (() => {
 
-"use strict";
+/* (ignored) */
 
+/***/ }),
 
-let MapGenerator = __webpack_require__(1670)
-let parse = __webpack_require__(4295)
-const Result = __webpack_require__(9055)
-let stringify = __webpack_require__(633)
-let warnOnce = __webpack_require__(3122)
+/***/ 2213:
+/***/ ((module) => {
 
-class NoWorkResult {
-  constructor(processor, css, opts) {
-    css = css.toString()
-    this.stringified = false
+/**
+ * Copyright 2004-present Facebook. All Rights Reserved.
+ *
+ * @providesModule UserAgent_DEPRECATED
+ */
 
-    this._processor = processor
-    this._css = css
-    this._opts = opts
-    this._map = undefined
-    let root
+/**
+ *  Provides entirely client-side User Agent and OS detection. You should prefer
+ *  the non-deprecated UserAgent module when possible, which exposes our
+ *  authoritative server-side PHP-based detection to the client.
+ *
+ *  Usage is straightforward:
+ *
+ *    if (UserAgent_DEPRECATED.ie()) {
+ *      //  IE
+ *    }
+ *
+ *  You can also do version checks:
+ *
+ *    if (UserAgent_DEPRECATED.ie() >= 7) {
+ *      //  IE7 or better
+ *    }
+ *
+ *  The browser functions will return NaN if the browser does not match, so
+ *  you can also do version compares the other way:
+ *
+ *    if (UserAgent_DEPRECATED.ie() < 7) {
+ *      //  IE6 or worse
+ *    }
+ *
+ *  Note that the version is a float and may include a minor version number,
+ *  so you should always use range operators to perform comparisons, not
+ *  strict equality.
+ *
+ *  **Note:** You should **strongly** prefer capability detection to browser
+ *  version detection where it's reasonable:
+ *
+ *    http://www.quirksmode.org/js/support.html
+ *
+ *  Further, we have a large number of mature wrapper functions and classes
+ *  which abstract away many browser irregularities. Check the documentation,
+ *  grep for things, or ask on javascript@lists.facebook.com before writing yet
+ *  another copy of "event || window.event".
+ *
+ */
 
-    let str = stringify
-    this.result = new Result(this._processor, root, this._opts)
-    this.result.css = css
+var _populated = false;
 
-    let self = this
-    Object.defineProperty(this.result, 'root', {
-      get() {
-        return self.root
-      }
-    })
+// Browsers
+var _ie, _firefox, _opera, _webkit, _chrome;
 
-    let map = new MapGenerator(str, root, this._opts, css)
-    if (map.isMap()) {
-      let [generatedCSS, generatedMap] = map.generate()
-      if (generatedCSS) {
-        this.result.css = generatedCSS
-      }
-      if (generatedMap) {
-        this.result.map = generatedMap
-      }
+// Actual IE browser for compatibility mode
+var _ie_real_version;
+
+// Platforms
+var _osx, _windows, _linux, _android;
+
+// Architectures
+var _win64;
+
+// Devices
+var _iphone, _ipad, _native;
+
+var _mobile;
+
+function _populate() {
+  if (_populated) {
+    return;
+  }
+
+  _populated = true;
+
+  // To work around buggy JS libraries that can't handle multi-digit
+  // version numbers, Opera 10's user agent string claims it's Opera
+  // 9, then later includes a Version/X.Y field:
+  //
+  // Opera/9.80 (foo) Presto/2.2.15 Version/10.10
+  var uas = navigator.userAgent;
+  var agent = /(?:MSIE.(\d+\.\d+))|(?:(?:Firefox|GranParadiso|Iceweasel).(\d+\.\d+))|(?:Opera(?:.+Version.|.)(\d+\.\d+))|(?:AppleWebKit.(\d+(?:\.\d+)?))|(?:Trident\/\d+\.\d+.*rv:(\d+\.\d+))/.exec(uas);
+  var os    = /(Mac OS X)|(Windows)|(Linux)/.exec(uas);
+
+  _iphone = /\b(iPhone|iP[ao]d)/.exec(uas);
+  _ipad = /\b(iP[ao]d)/.exec(uas);
+  _android = /Android/i.exec(uas);
+  _native = /FBAN\/\w+;/i.exec(uas);
+  _mobile = /Mobile/i.exec(uas);
+
+  // Note that the IE team blog would have you believe you should be checking
+  // for 'Win64; x64'.  But MSDN then reveals that you can actually be coming
+  // from either x64 or ia64;  so ultimately, you should just check for Win64
+  // as in indicator of whether you're in 64-bit IE.  32-bit IE on 64-bit
+  // Windows will send 'WOW64' instead.
+  _win64 = !!(/Win64/.exec(uas));
+
+  if (agent) {
+    _ie = agent[1] ? parseFloat(agent[1]) : (
+          agent[5] ? parseFloat(agent[5]) : NaN);
+    // IE compatibility mode
+    if (_ie && document && document.documentMode) {
+      _ie = document.documentMode;
+    }
+    // grab the "true" ie version from the trident token if available
+    var trident = /(?:Trident\/(\d+.\d+))/.exec(uas);
+    _ie_real_version = trident ? parseFloat(trident[1]) + 4 : _ie;
+
+    _firefox = agent[2] ? parseFloat(agent[2]) : NaN;
+    _opera   = agent[3] ? parseFloat(agent[3]) : NaN;
+    _webkit  = agent[4] ? parseFloat(agent[4]) : NaN;
+    if (_webkit) {
+      // We do not add the regexp to the above test, because it will always
+      // match 'safari' only since 'AppleWebKit' appears before 'Chrome' in
+      // the userAgent string.
+      agent = /(?:Chrome\/(\d+\.\d+))/.exec(uas);
+      _chrome = agent && agent[1] ? parseFloat(agent[1]) : NaN;
     } else {
-      map.clearAnnotation()
-      this.result.css = map.css
+      _chrome = NaN;
     }
+  } else {
+    _ie = _firefox = _opera = _chrome = _webkit = NaN;
   }
 
-  async() {
-    if (this.error) return Promise.reject(this.error)
-    return Promise.resolve(this.result)
-  }
+  if (os) {
+    if (os[1]) {
+      // Detect OS X version.  If no version number matches, set _osx to true.
+      // Version examples:  10, 10_6_1, 10.7
+      // Parses version number as a float, taking only first two sets of
+      // digits.  If only one set of digits is found, returns just the major
+      // version number.
+      var ver = /(?:Mac OS X (\d+(?:[._]\d+)?))/.exec(uas);
 
-  catch(onRejected) {
-    return this.async().catch(onRejected)
-  }
-
-  finally(onFinally) {
-    return this.async().then(onFinally, onFinally)
-  }
-
-  sync() {
-    if (this.error) throw this.error
-    return this.result
-  }
-
-  then(onFulfilled, onRejected) {
-    if (false) {}
-
-    return this.async().then(onFulfilled, onRejected)
-  }
-
-  toString() {
-    return this._css
-  }
-
-  warnings() {
-    return []
-  }
-
-  get content() {
-    return this.result.css
-  }
-
-  get css() {
-    return this.result.css
-  }
-
-  get map() {
-    return this.result.map
-  }
-
-  get messages() {
-    return []
-  }
-
-  get opts() {
-    return this.result.opts
-  }
-
-  get processor() {
-    return this.result.processor
-  }
-
-  get root() {
-    if (this._root) {
-      return this._root
-    }
-
-    let root
-    let parser = parse
-
-    try {
-      root = parser(this._css, this._opts)
-    } catch (error) {
-      this.error = error
-    }
-
-    if (this.error) {
-      throw this.error
+      _osx = ver ? parseFloat(ver[1].replace('_', '.')) : true;
     } else {
-      this._root = root
-      return root
+      _osx = false;
     }
-  }
-
-  get [Symbol.toStringTag]() {
-    return 'NoWorkResult'
+    _windows = !!os[2];
+    _linux   = !!os[3];
+  } else {
+    _osx = _windows = _linux = false;
   }
 }
 
-module.exports = NoWorkResult
-NoWorkResult.default = NoWorkResult
+var UserAgent_DEPRECATED = {
+
+  /**
+   *  Check if the UA is Internet Explorer.
+   *
+   *
+   *  @return float|NaN Version number (if match) or NaN.
+   */
+  ie: function() {
+    return _populate() || _ie;
+  },
+
+  /**
+   * Check if we're in Internet Explorer compatibility mode.
+   *
+   * @return bool true if in compatibility mode, false if
+   * not compatibility mode or not ie
+   */
+  ieCompatibilityMode: function() {
+    return _populate() || (_ie_real_version > _ie);
+  },
+
+
+  /**
+   * Whether the browser is 64-bit IE.  Really, this is kind of weak sauce;  we
+   * only need this because Skype can't handle 64-bit IE yet.  We need to remove
+   * this when we don't need it -- tracked by #601957.
+   */
+  ie64: function() {
+    return UserAgent_DEPRECATED.ie() && _win64;
+  },
+
+  /**
+   *  Check if the UA is Firefox.
+   *
+   *
+   *  @return float|NaN Version number (if match) or NaN.
+   */
+  firefox: function() {
+    return _populate() || _firefox;
+  },
+
+
+  /**
+   *  Check if the UA is Opera.
+   *
+   *
+   *  @return float|NaN Version number (if match) or NaN.
+   */
+  opera: function() {
+    return _populate() || _opera;
+  },
+
+
+  /**
+   *  Check if the UA is WebKit.
+   *
+   *
+   *  @return float|NaN Version number (if match) or NaN.
+   */
+  webkit: function() {
+    return _populate() || _webkit;
+  },
+
+  /**
+   *  For Push
+   *  WILL BE REMOVED VERY SOON. Use UserAgent_DEPRECATED.webkit
+   */
+  safari: function() {
+    return UserAgent_DEPRECATED.webkit();
+  },
+
+  /**
+   *  Check if the UA is a Chrome browser.
+   *
+   *
+   *  @return float|NaN Version number (if match) or NaN.
+   */
+  chrome : function() {
+    return _populate() || _chrome;
+  },
+
+
+  /**
+   *  Check if the user is running Windows.
+   *
+   *  @return bool `true' if the user's OS is Windows.
+   */
+  windows: function() {
+    return _populate() || _windows;
+  },
+
+
+  /**
+   *  Check if the user is running Mac OS X.
+   *
+   *  @return float|bool   Returns a float if a version number is detected,
+   *                       otherwise true/false.
+   */
+  osx: function() {
+    return _populate() || _osx;
+  },
+
+  /**
+   * Check if the user is running Linux.
+   *
+   * @return bool `true' if the user's OS is some flavor of Linux.
+   */
+  linux: function() {
+    return _populate() || _linux;
+  },
+
+  /**
+   * Check if the user is running on an iPhone or iPod platform.
+   *
+   * @return bool `true' if the user is running some flavor of the
+   *    iPhone OS.
+   */
+  iphone: function() {
+    return _populate() || _iphone;
+  },
+
+  mobile: function() {
+    return _populate() || (_iphone || _ipad || _android || _mobile);
+  },
+
+  nativeApp: function() {
+    // webviews inside of the native apps
+    return _populate() || _native;
+  },
+
+  android: function() {
+    return _populate() || _android;
+  },
+
+  ipad: function() {
+    return _populate() || _ipad;
+  }
+};
+
+module.exports = UserAgent_DEPRECATED;
 
 
 /***/ }),
 
-/***/ 7490:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ 2327:
+/***/ ((module) => {
 
 "use strict";
 
 
-let CssSyntaxError = __webpack_require__(356)
-let Stringifier = __webpack_require__(346)
-let stringify = __webpack_require__(633)
-let { isClean, my } = __webpack_require__(1381)
+const SINGLE_QUOTE = "'".charCodeAt(0)
+const DOUBLE_QUOTE = '"'.charCodeAt(0)
+const BACKSLASH = '\\'.charCodeAt(0)
+const SLASH = '/'.charCodeAt(0)
+const NEWLINE = '\n'.charCodeAt(0)
+const SPACE = ' '.charCodeAt(0)
+const FEED = '\f'.charCodeAt(0)
+const TAB = '\t'.charCodeAt(0)
+const CR = '\r'.charCodeAt(0)
+const OPEN_SQUARE = '['.charCodeAt(0)
+const CLOSE_SQUARE = ']'.charCodeAt(0)
+const OPEN_PARENTHESES = '('.charCodeAt(0)
+const CLOSE_PARENTHESES = ')'.charCodeAt(0)
+const OPEN_CURLY = '{'.charCodeAt(0)
+const CLOSE_CURLY = '}'.charCodeAt(0)
+const SEMICOLON = ';'.charCodeAt(0)
+const ASTERISK = '*'.charCodeAt(0)
+const COLON = ':'.charCodeAt(0)
+const AT = '@'.charCodeAt(0)
 
-function cloneNode(obj, parent) {
-  let cloned = new obj.constructor()
+const RE_AT_END = /[\t\n\f\r "#'()/;[\\\]{}]/g
+const RE_WORD_END = /[\t\n\f\r !"#'():;@[\\\]{}]|\/(?=\*)/g
+const RE_BAD_BRACKET = /.[\r\n"'(/\\]/
+const RE_HEX_ESCAPE = /[\da-f]/i
 
-  for (let i in obj) {
-    if (!Object.prototype.hasOwnProperty.call(obj, i)) {
-      /* c8 ignore next 2 */
-      continue
-    }
-    if (i === 'proxyCache') continue
-    let value = obj[i]
-    let type = typeof value
+module.exports = function tokenizer(input, options = {}) {
+  let css = input.css.valueOf()
+  let ignore = options.ignoreErrors
 
-    if (i === 'parent' && type === 'object') {
-      if (parent) cloned[i] = parent
-    } else if (i === 'source') {
-      cloned[i] = value
-    } else if (Array.isArray(value)) {
-      cloned[i] = value.map(j => cloneNode(j, cloned))
-    } else {
-      if (type === 'object' && value !== null) value = cloneNode(value)
-      cloned[i] = value
-    }
-  }
+  let code, content, escape, next, quote
+  let currentToken, escaped, escapePos, n, prev
 
-  return cloned
-}
+  let length = css.length
+  let pos = 0
+  let buffer = []
+  let returned = []
 
-function sourceOffset(inputCSS, position) {
-  // Not all custom syntaxes support `offset` in `source.start` and `source.end`
-  if (
-    position &&
-    typeof position.offset !== 'undefined'
-  ) {
-    return position.offset;
-  }
-
-  let column = 1
-  let line = 1
-  let offset = 0
-
-  for (let i = 0; i < inputCSS.length; i++) {
-    if (line === position.line && column === position.column) {
-      offset = i
-      break
-    }
-
-    if (inputCSS[i] === '\n') {
-      column = 1
-      line += 1
-    } else {
-      column += 1
-    }
-  }
-
-  return offset
-}
-
-class Node {
-  constructor(defaults = {}) {
-    this.raws = {}
-    this[isClean] = false
-    this[my] = true
-
-    for (let name in defaults) {
-      if (name === 'nodes') {
-        this.nodes = []
-        for (let node of defaults[name]) {
-          if (typeof node.clone === 'function') {
-            this.append(node.clone())
-          } else {
-            this.append(node)
-          }
-        }
-      } else {
-        this[name] = defaults[name]
-      }
-    }
-  }
-
-  addToError(error) {
-    error.postcssNode = this
-    if (error.stack && this.source && /\n\s{4}at /.test(error.stack)) {
-      let s = this.source
-      error.stack = error.stack.replace(
-        /\n\s{4}at /,
-        `$&${s.input.from}:${s.start.line}:${s.start.column}$&`
-      )
-    }
-    return error
-  }
-
-  after(add) {
-    this.parent.insertAfter(this, add)
-    return this
-  }
-
-  assign(overrides = {}) {
-    for (let name in overrides) {
-      this[name] = overrides[name]
-    }
-    return this
-  }
-
-  before(add) {
-    this.parent.insertBefore(this, add)
-    return this
-  }
-
-  cleanRaws(keepBetween) {
-    delete this.raws.before
-    delete this.raws.after
-    if (!keepBetween) delete this.raws.between
-  }
-
-  clone(overrides = {}) {
-    let cloned = cloneNode(this)
-    for (let name in overrides) {
-      cloned[name] = overrides[name]
-    }
-    return cloned
-  }
-
-  cloneAfter(overrides = {}) {
-    let cloned = this.clone(overrides)
-    this.parent.insertAfter(this, cloned)
-    return cloned
-  }
-
-  cloneBefore(overrides = {}) {
-    let cloned = this.clone(overrides)
-    this.parent.insertBefore(this, cloned)
-    return cloned
-  }
-
-  error(message, opts = {}) {
-    if (this.source) {
-      let { end, start } = this.rangeBy(opts)
-      return this.source.input.error(
-        message,
-        { column: start.column, line: start.line },
-        { column: end.column, line: end.line },
-        opts
-      )
-    }
-    return new CssSyntaxError(message)
-  }
-
-  getProxyProcessor() {
-    return {
-      get(node, prop) {
-        if (prop === 'proxyOf') {
-          return node
-        } else if (prop === 'root') {
-          return () => node.root().toProxy()
-        } else {
-          return node[prop]
-        }
-      },
-
-      set(node, prop, value) {
-        if (node[prop] === value) return true
-        node[prop] = value
-        if (
-          prop === 'prop' ||
-          prop === 'value' ||
-          prop === 'name' ||
-          prop === 'params' ||
-          prop === 'important' ||
-          /* c8 ignore next */
-          prop === 'text'
-        ) {
-          node.markDirty()
-        }
-        return true
-      }
-    }
-  }
-
-  /* c8 ignore next 3 */
-  markClean() {
-    this[isClean] = true
-  }
-
-  markDirty() {
-    if (this[isClean]) {
-      this[isClean] = false
-      let next = this
-      while ((next = next.parent)) {
-        next[isClean] = false
-      }
-    }
-  }
-
-  next() {
-    if (!this.parent) return undefined
-    let index = this.parent.index(this)
-    return this.parent.nodes[index + 1]
-  }
-
-  positionBy(opts) {
-    let pos = this.source.start
-    if (opts.index) {
-      pos = this.positionInside(opts.index)
-    } else if (opts.word) {
-      let stringRepresentation = this.source.input.css.slice(
-        sourceOffset(this.source.input.css, this.source.start),
-        sourceOffset(this.source.input.css, this.source.end)
-      )
-      let index = stringRepresentation.indexOf(opts.word)
-      if (index !== -1) pos = this.positionInside(index)
-    }
+  function position() {
     return pos
   }
 
-  positionInside(index) {
-    let column = this.source.start.column
-    let line = this.source.start.line
-    let offset = sourceOffset(this.source.input.css, this.source.start)
-    let end = offset + index
-
-    for (let i = offset; i < end; i++) {
-      if (this.source.input.css[i] === '\n') {
-        column = 1
-        line += 1
-      } else {
-        column += 1
-      }
-    }
-
-    return { column, line }
+  function unclosed(what) {
+    throw input.error('Unclosed ' + what, pos)
   }
 
-  prev() {
-    if (!this.parent) return undefined
-    let index = this.parent.index(this)
-    return this.parent.nodes[index - 1]
+  function endOfFile() {
+    return returned.length === 0 && pos >= length
   }
 
-  rangeBy(opts) {
-    let start = {
-      column: this.source.start.column,
-      line: this.source.start.line
-    }
-    let end = this.source.end
-      ? {
-          column: this.source.end.column + 1,
-          line: this.source.end.line
-        }
-      : {
-          column: start.column + 1,
-          line: start.line
-        }
+  function nextToken(opts) {
+    if (returned.length) return returned.pop()
+    if (pos >= length) return
 
-    if (opts.word) {
-      let stringRepresentation = this.source.input.css.slice(
-        sourceOffset(this.source.input.css, this.source.start),
-        sourceOffset(this.source.input.css, this.source.end)
-      )
-      let index = stringRepresentation.indexOf(opts.word)
-      if (index !== -1) {
-        start = this.positionInside(index)
-        end = this.positionInside(
-          index + opts.word.length,
+    let ignoreUnclosed = opts ? opts.ignoreUnclosed : false
+
+    code = css.charCodeAt(pos)
+
+    switch (code) {
+      case NEWLINE:
+      case SPACE:
+      case TAB:
+      case CR:
+      case FEED: {
+        next = pos
+        do {
+          next += 1
+          code = css.charCodeAt(next)
+        } while (
+          code === SPACE ||
+          code === NEWLINE ||
+          code === TAB ||
+          code === CR ||
+          code === FEED
         )
-      }
-    } else {
-      if (opts.start) {
-        start = {
-          column: opts.start.column,
-          line: opts.start.line
-        }
-      } else if (opts.index) {
-        start = this.positionInside(opts.index)
+
+        currentToken = ['space', css.slice(pos, next)]
+        pos = next - 1
+        break
       }
 
-      if (opts.end) {
-        end = {
-          column: opts.end.column,
-          line: opts.end.line
-        }
-      } else if (typeof opts.endIndex === 'number') {
-        end = this.positionInside(opts.endIndex)
-      } else if (opts.index) {
-        end = this.positionInside(opts.index + 1)
+      case OPEN_SQUARE:
+      case CLOSE_SQUARE:
+      case OPEN_CURLY:
+      case CLOSE_CURLY:
+      case COLON:
+      case SEMICOLON:
+      case CLOSE_PARENTHESES: {
+        let controlChar = String.fromCharCode(code)
+        currentToken = [controlChar, controlChar, pos]
+        break
       }
-    }
 
-    if (
-      end.line < start.line ||
-      (end.line === start.line && end.column <= start.column)
-    ) {
-      end = { column: start.column + 1, line: start.line }
-    }
+      case OPEN_PARENTHESES: {
+        prev = buffer.length ? buffer.pop()[1] : ''
+        n = css.charCodeAt(pos + 1)
+        if (
+          prev === 'url' &&
+          n !== SINGLE_QUOTE &&
+          n !== DOUBLE_QUOTE &&
+          n !== SPACE &&
+          n !== NEWLINE &&
+          n !== TAB &&
+          n !== FEED &&
+          n !== CR
+        ) {
+          next = pos
+          do {
+            escaped = false
+            next = css.indexOf(')', next + 1)
+            if (next === -1) {
+              if (ignore || ignoreUnclosed) {
+                next = pos
+                break
+              } else {
+                unclosed('bracket')
+              }
+            }
+            escapePos = next
+            while (css.charCodeAt(escapePos - 1) === BACKSLASH) {
+              escapePos -= 1
+              escaped = !escaped
+            }
+          } while (escaped)
 
-    return { end, start }
-  }
+          currentToken = ['brackets', css.slice(pos, next + 1), pos, next]
 
-  raw(prop, defaultType) {
-    let str = new Stringifier()
-    return str.raw(this, prop, defaultType)
-  }
-
-  remove() {
-    if (this.parent) {
-      this.parent.removeChild(this)
-    }
-    this.parent = undefined
-    return this
-  }
-
-  replaceWith(...nodes) {
-    if (this.parent) {
-      let bookmark = this
-      let foundSelf = false
-      for (let node of nodes) {
-        if (node === this) {
-          foundSelf = true
-        } else if (foundSelf) {
-          this.parent.insertAfter(bookmark, node)
-          bookmark = node
+          pos = next
         } else {
-          this.parent.insertBefore(bookmark, node)
-        }
-      }
+          next = css.indexOf(')', pos + 1)
+          content = css.slice(pos, next + 1)
 
-      if (!foundSelf) {
-        this.remove()
-      }
-    }
-
-    return this
-  }
-
-  root() {
-    let result = this
-    while (result.parent && result.parent.type !== 'document') {
-      result = result.parent
-    }
-    return result
-  }
-
-  toJSON(_, inputs) {
-    let fixed = {}
-    let emitInputs = inputs == null
-    inputs = inputs || new Map()
-    let inputsNextIndex = 0
-
-    for (let name in this) {
-      if (!Object.prototype.hasOwnProperty.call(this, name)) {
-        /* c8 ignore next 2 */
-        continue
-      }
-      if (name === 'parent' || name === 'proxyCache') continue
-      let value = this[name]
-
-      if (Array.isArray(value)) {
-        fixed[name] = value.map(i => {
-          if (typeof i === 'object' && i.toJSON) {
-            return i.toJSON(null, inputs)
+          if (next === -1 || RE_BAD_BRACKET.test(content)) {
+            currentToken = ['(', '(', pos]
           } else {
-            return i
+            currentToken = ['brackets', content, pos, next]
+            pos = next
           }
-        })
-      } else if (typeof value === 'object' && value.toJSON) {
-        fixed[name] = value.toJSON(null, inputs)
-      } else if (name === 'source') {
-        let inputId = inputs.get(value.input)
-        if (inputId == null) {
-          inputId = inputsNextIndex
-          inputs.set(value.input, inputsNextIndex)
-          inputsNextIndex++
         }
-        fixed[name] = {
-          end: value.end,
-          inputId,
-          start: value.start
+
+        break
+      }
+
+      case SINGLE_QUOTE:
+      case DOUBLE_QUOTE: {
+        quote = code === SINGLE_QUOTE ? "'" : '"'
+        next = pos
+        do {
+          escaped = false
+          next = css.indexOf(quote, next + 1)
+          if (next === -1) {
+            if (ignore || ignoreUnclosed) {
+              next = pos + 1
+              break
+            } else {
+              unclosed('string')
+            }
+          }
+          escapePos = next
+          while (css.charCodeAt(escapePos - 1) === BACKSLASH) {
+            escapePos -= 1
+            escaped = !escaped
+          }
+        } while (escaped)
+
+        currentToken = ['string', css.slice(pos, next + 1), pos, next]
+        pos = next
+        break
+      }
+
+      case AT: {
+        RE_AT_END.lastIndex = pos + 1
+        RE_AT_END.test(css)
+        if (RE_AT_END.lastIndex === 0) {
+          next = css.length - 1
+        } else {
+          next = RE_AT_END.lastIndex - 2
         }
-      } else {
-        fixed[name] = value
+
+        currentToken = ['at-word', css.slice(pos, next + 1), pos, next]
+
+        pos = next
+        break
+      }
+
+      case BACKSLASH: {
+        next = pos
+        escape = true
+        while (css.charCodeAt(next + 1) === BACKSLASH) {
+          next += 1
+          escape = !escape
+        }
+        code = css.charCodeAt(next + 1)
+        if (
+          escape &&
+          code !== SLASH &&
+          code !== SPACE &&
+          code !== NEWLINE &&
+          code !== TAB &&
+          code !== CR &&
+          code !== FEED
+        ) {
+          next += 1
+          if (RE_HEX_ESCAPE.test(css.charAt(next))) {
+            while (RE_HEX_ESCAPE.test(css.charAt(next + 1))) {
+              next += 1
+            }
+            if (css.charCodeAt(next + 1) === SPACE) {
+              next += 1
+            }
+          }
+        }
+
+        currentToken = ['word', css.slice(pos, next + 1), pos, next]
+
+        pos = next
+        break
+      }
+
+      default: {
+        if (code === SLASH && css.charCodeAt(pos + 1) === ASTERISK) {
+          next = css.indexOf('*/', pos + 2) + 1
+          if (next === 0) {
+            if (ignore || ignoreUnclosed) {
+              next = css.length
+            } else {
+              unclosed('comment')
+            }
+          }
+
+          currentToken = ['comment', css.slice(pos, next + 1), pos, next]
+          pos = next
+        } else {
+          RE_WORD_END.lastIndex = pos + 1
+          RE_WORD_END.test(css)
+          if (RE_WORD_END.lastIndex === 0) {
+            next = css.length - 1
+          } else {
+            next = RE_WORD_END.lastIndex - 2
+          }
+
+          currentToken = ['word', css.slice(pos, next + 1), pos, next]
+          buffer.push(currentToken)
+          pos = next
+        }
+
+        break
       }
     }
 
-    if (emitInputs) {
-      fixed.inputs = [...inputs.keys()].map(input => input.toJSON())
-    }
-
-    return fixed
+    pos++
+    return currentToken
   }
 
-  toProxy() {
-    if (!this.proxyCache) {
-      this.proxyCache = new Proxy(this, this.getProxyProcessor())
-    }
-    return this.proxyCache
+  function back(token) {
+    returned.push(token)
   }
 
-  toString(stringifier = stringify) {
-    if (stringifier.stringify) stringifier = stringifier.stringify
-    let result = ''
-    stringifier(this, i => {
-      result += i
-    })
-    return result
-  }
-
-  warn(result, text, opts) {
-    let data = { node: this }
-    for (let i in opts) data[i] = opts[i]
-    return result.warn(text, data)
-  }
-
-  get proxyOf() {
-    return this
+  return {
+    back,
+    endOfFile,
+    nextToken,
+    position
   }
 }
-
-module.exports = Node
-Node.default = Node
 
 
 /***/ }),
 
-/***/ 4295:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ 2739:
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 2775:
+/***/ ((module) => {
+
+var x=String;
+var create=function() {return {isColorSupported:false,reset:x,bold:x,dim:x,italic:x,underline:x,inverse:x,hidden:x,strikethrough:x,black:x,red:x,green:x,yellow:x,blue:x,magenta:x,cyan:x,white:x,gray:x,bgBlack:x,bgRed:x,bgGreen:x,bgYellow:x,bgBlue:x,bgMagenta:x,bgCyan:x,bgWhite:x,blackBright:x,redBright:x,greenBright:x,yellowBright:x,blueBright:x,magentaBright:x,cyanBright:x,whiteBright:x,bgBlackBright:x,bgRedBright:x,bgGreenBright:x,bgYellowBright:x,bgBlueBright:x,bgMagentaBright:x,bgCyanBright:x,bgWhiteBright:x}};
+module.exports=create();
+module.exports.createColors = create;
+
+
+/***/ }),
+
+/***/ 3122:
+/***/ ((module) => {
 
 "use strict";
+/* eslint-disable no-console */
 
 
-let Container = __webpack_require__(683)
-let Input = __webpack_require__(5380)
-let Parser = __webpack_require__(3937)
+let printed = {}
 
-function parse(css, opts) {
-  let input = new Input(css, opts)
-  let parser = new Parser(input)
-  try {
-    parser.parse()
-  } catch (e) {
-    if (false) {}
-    throw e
+module.exports = function warnOnce(message) {
+  if (printed[message]) return
+  printed[message] = true
+
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn(message)
   }
-
-  return parser.root
 }
 
-module.exports = parse
-parse.default = parse
 
-Container.registerParse(parse)
+/***/ }),
+
+/***/ 3815:
+/***/ ((module) => {
+
+module.exports = function walk(nodes, cb, bubble) {
+  var i, max, node, result;
+
+  for (i = 0, max = nodes.length; i < max; i += 1) {
+    node = nodes[i];
+    if (!bubble) {
+      result = cb(node, i, nodes);
+    }
+
+    if (
+      result !== false &&
+      node.type === "function" &&
+      Array.isArray(node.nodes)
+    ) {
+      walk(node.nodes, cb, bubble);
+    }
+
+    if (bubble) {
+      cb(node, i, nodes);
+    }
+  }
+};
 
 
 /***/ }),
@@ -5158,6 +3502,8 @@ class Parser {
       if (prev && prev.type === 'rule' && !prev.raws.ownSemicolon) {
         prev.raws.ownSemicolon = this.spaces
         this.spaces = ''
+        prev.source.end = this.getPosition(token[2])
+        prev.source.end.offset += prev.raws.ownSemicolon.length
       }
     }
   }
@@ -5402,7 +3748,7 @@ class Parser {
 
   unknownWord(tokens) {
     throw this.input.error(
-      'Unknown word',
+      'Unknown word ' + tokens[0][1],
       { offset: tokens[0][2] },
       { offset: tokens[0][2] + tokens[0][1].length }
     )
@@ -5418,6 +3764,1305 @@ class Parser {
 }
 
 module.exports = Parser
+
+
+/***/ }),
+
+/***/ 4067:
+/***/ ((module) => {
+
+"use strict";
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+
+
+var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
+
+module.exports = ReactPropTypesSecret;
+
+
+/***/ }),
+
+/***/ 4092:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Container = __webpack_require__(683)
+let list = __webpack_require__(7374)
+
+class Rule extends Container {
+  get selectors() {
+    return list.comma(this.selector)
+  }
+
+  set selectors(values) {
+    let match = this.selector ? this.selector.match(/,\s*/) : null
+    let sep = match ? match[0] : ',' + this.raw('between', 'beforeOpen')
+    this.selector = values.join(sep)
+  }
+
+  constructor(defaults) {
+    super(defaults)
+    this.type = 'rule'
+    if (!this.nodes) this.nodes = []
+  }
+}
+
+module.exports = Rule
+Rule.default = Rule
+
+Container.registerRule(Rule)
+
+
+/***/ }),
+
+/***/ 4132:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+var __webpack_unused_export__;
+
+__webpack_unused_export__ = true;
+var TextareaAutosize_1 = __webpack_require__(4462);
+exports.A = TextareaAutosize_1.TextareaAutosize;
+
+
+/***/ }),
+
+/***/ 4295:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let Container = __webpack_require__(683)
+let Input = __webpack_require__(5380)
+let Parser = __webpack_require__(3937)
+
+function parse(css, opts) {
+  let input = new Input(css, opts)
+  let parser = new Parser(input)
+  try {
+    parser.parse()
+  } catch (e) {
+    if (false) {}
+    throw e
+  }
+
+  return parser.root
+}
+
+module.exports = parse
+parse.default = parse
+
+Container.registerParse(parse)
+
+
+/***/ }),
+
+/***/ 4306:
+/***/ (function(module, exports) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	autosize 4.0.4
+	license: MIT
+	http://www.jacklmoore.com/autosize
+*/
+(function (global, factory) {
+	if (true) {
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [module, exports], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+		__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+		(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	} else { var mod; }
+})(this, function (module, exports) {
+	'use strict';
+
+	var map = typeof Map === "function" ? new Map() : function () {
+		var keys = [];
+		var values = [];
+
+		return {
+			has: function has(key) {
+				return keys.indexOf(key) > -1;
+			},
+			get: function get(key) {
+				return values[keys.indexOf(key)];
+			},
+			set: function set(key, value) {
+				if (keys.indexOf(key) === -1) {
+					keys.push(key);
+					values.push(value);
+				}
+			},
+			delete: function _delete(key) {
+				var index = keys.indexOf(key);
+				if (index > -1) {
+					keys.splice(index, 1);
+					values.splice(index, 1);
+				}
+			}
+		};
+	}();
+
+	var createEvent = function createEvent(name) {
+		return new Event(name, { bubbles: true });
+	};
+	try {
+		new Event('test');
+	} catch (e) {
+		// IE does not support `new Event()`
+		createEvent = function createEvent(name) {
+			var evt = document.createEvent('Event');
+			evt.initEvent(name, true, false);
+			return evt;
+		};
+	}
+
+	function assign(ta) {
+		if (!ta || !ta.nodeName || ta.nodeName !== 'TEXTAREA' || map.has(ta)) return;
+
+		var heightOffset = null;
+		var clientWidth = null;
+		var cachedHeight = null;
+
+		function init() {
+			var style = window.getComputedStyle(ta, null);
+
+			if (style.resize === 'vertical') {
+				ta.style.resize = 'none';
+			} else if (style.resize === 'both') {
+				ta.style.resize = 'horizontal';
+			}
+
+			if (style.boxSizing === 'content-box') {
+				heightOffset = -(parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
+			} else {
+				heightOffset = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+			}
+			// Fix when a textarea is not on document body and heightOffset is Not a Number
+			if (isNaN(heightOffset)) {
+				heightOffset = 0;
+			}
+
+			update();
+		}
+
+		function changeOverflow(value) {
+			{
+				// Chrome/Safari-specific fix:
+				// When the textarea y-overflow is hidden, Chrome/Safari do not reflow the text to account for the space
+				// made available by removing the scrollbar. The following forces the necessary text reflow.
+				var width = ta.style.width;
+				ta.style.width = '0px';
+				// Force reflow:
+				/* jshint ignore:start */
+				ta.offsetWidth;
+				/* jshint ignore:end */
+				ta.style.width = width;
+			}
+
+			ta.style.overflowY = value;
+		}
+
+		function getParentOverflows(el) {
+			var arr = [];
+
+			while (el && el.parentNode && el.parentNode instanceof Element) {
+				if (el.parentNode.scrollTop) {
+					arr.push({
+						node: el.parentNode,
+						scrollTop: el.parentNode.scrollTop
+					});
+				}
+				el = el.parentNode;
+			}
+
+			return arr;
+		}
+
+		function resize() {
+			if (ta.scrollHeight === 0) {
+				// If the scrollHeight is 0, then the element probably has display:none or is detached from the DOM.
+				return;
+			}
+
+			var overflows = getParentOverflows(ta);
+			var docTop = document.documentElement && document.documentElement.scrollTop; // Needed for Mobile IE (ticket #240)
+
+			ta.style.height = '';
+			ta.style.height = ta.scrollHeight + heightOffset + 'px';
+
+			// used to check if an update is actually necessary on window.resize
+			clientWidth = ta.clientWidth;
+
+			// prevents scroll-position jumping
+			overflows.forEach(function (el) {
+				el.node.scrollTop = el.scrollTop;
+			});
+
+			if (docTop) {
+				document.documentElement.scrollTop = docTop;
+			}
+		}
+
+		function update() {
+			resize();
+
+			var styleHeight = Math.round(parseFloat(ta.style.height));
+			var computed = window.getComputedStyle(ta, null);
+
+			// Using offsetHeight as a replacement for computed.height in IE, because IE does not account use of border-box
+			var actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(computed.height)) : ta.offsetHeight;
+
+			// The actual height not matching the style height (set via the resize method) indicates that 
+			// the max-height has been exceeded, in which case the overflow should be allowed.
+			if (actualHeight < styleHeight) {
+				if (computed.overflowY === 'hidden') {
+					changeOverflow('scroll');
+					resize();
+					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
+				}
+			} else {
+				// Normally keep overflow set to hidden, to avoid flash of scrollbar as the textarea expands.
+				if (computed.overflowY !== 'hidden') {
+					changeOverflow('hidden');
+					resize();
+					actualHeight = computed.boxSizing === 'content-box' ? Math.round(parseFloat(window.getComputedStyle(ta, null).height)) : ta.offsetHeight;
+				}
+			}
+
+			if (cachedHeight !== actualHeight) {
+				cachedHeight = actualHeight;
+				var evt = createEvent('autosize:resized');
+				try {
+					ta.dispatchEvent(evt);
+				} catch (err) {
+					// Firefox will throw an error on dispatchEvent for a detached element
+					// https://bugzilla.mozilla.org/show_bug.cgi?id=889376
+				}
+			}
+		}
+
+		var pageResize = function pageResize() {
+			if (ta.clientWidth !== clientWidth) {
+				update();
+			}
+		};
+
+		var destroy = function (style) {
+			window.removeEventListener('resize', pageResize, false);
+			ta.removeEventListener('input', update, false);
+			ta.removeEventListener('keyup', update, false);
+			ta.removeEventListener('autosize:destroy', destroy, false);
+			ta.removeEventListener('autosize:update', update, false);
+
+			Object.keys(style).forEach(function (key) {
+				ta.style[key] = style[key];
+			});
+
+			map.delete(ta);
+		}.bind(ta, {
+			height: ta.style.height,
+			resize: ta.style.resize,
+			overflowY: ta.style.overflowY,
+			overflowX: ta.style.overflowX,
+			wordWrap: ta.style.wordWrap
+		});
+
+		ta.addEventListener('autosize:destroy', destroy, false);
+
+		// IE9 does not fire onpropertychange or oninput for deletions,
+		// so binding to onkeyup to catch most of those events.
+		// There is no way that I know of to detect something like 'cut' in IE9.
+		if ('onpropertychange' in ta && 'oninput' in ta) {
+			ta.addEventListener('keyup', update, false);
+		}
+
+		window.addEventListener('resize', pageResize, false);
+		ta.addEventListener('input', update, false);
+		ta.addEventListener('autosize:update', update, false);
+		ta.style.overflowX = 'hidden';
+		ta.style.wordWrap = 'break-word';
+
+		map.set(ta, {
+			destroy: destroy,
+			update: update
+		});
+
+		init();
+	}
+
+	function destroy(ta) {
+		var methods = map.get(ta);
+		if (methods) {
+			methods.destroy();
+		}
+	}
+
+	function update(ta) {
+		var methods = map.get(ta);
+		if (methods) {
+			methods.update();
+		}
+	}
+
+	var autosize = null;
+
+	// Do nothing in Node.js environment and IE8 (or lower)
+	if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
+		autosize = function autosize(el) {
+			return el;
+		};
+		autosize.destroy = function (el) {
+			return el;
+		};
+		autosize.update = function (el) {
+			return el;
+		};
+	} else {
+		autosize = function autosize(el, options) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], function (x) {
+					return assign(x, options);
+				});
+			}
+			return el;
+		};
+		autosize.destroy = function (el) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], destroy);
+			}
+			return el;
+		};
+		autosize.update = function (el) {
+			if (el) {
+				Array.prototype.forEach.call(el.length ? el : [el], update);
+			}
+			return el;
+		};
+	}
+
+	exports.default = autosize;
+	module.exports = exports['default'];
+});
+
+/***/ }),
+
+/***/ 4462:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
+            t[p[i]] = s[p[i]];
+    return t;
+};
+exports.__esModule = true;
+var React = __webpack_require__(1609);
+var PropTypes = __webpack_require__(5826);
+var autosize = __webpack_require__(4306);
+var _getLineHeight = __webpack_require__(461);
+var getLineHeight = _getLineHeight;
+var RESIZED = "autosize:resized";
+/**
+ * A light replacement for built-in textarea component
+ * which automaticaly adjusts its height to match the content
+ */
+var TextareaAutosizeClass = /** @class */ (function (_super) {
+    __extends(TextareaAutosizeClass, _super);
+    function TextareaAutosizeClass() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.state = {
+            lineHeight: null
+        };
+        _this.textarea = null;
+        _this.onResize = function (e) {
+            if (_this.props.onResize) {
+                _this.props.onResize(e);
+            }
+        };
+        _this.updateLineHeight = function () {
+            if (_this.textarea) {
+                _this.setState({
+                    lineHeight: getLineHeight(_this.textarea)
+                });
+            }
+        };
+        _this.onChange = function (e) {
+            var onChange = _this.props.onChange;
+            _this.currentValue = e.currentTarget.value;
+            onChange && onChange(e);
+        };
+        return _this;
+    }
+    TextareaAutosizeClass.prototype.componentDidMount = function () {
+        var _this = this;
+        var _a = this.props, maxRows = _a.maxRows, async = _a.async;
+        if (typeof maxRows === "number") {
+            this.updateLineHeight();
+        }
+        if (typeof maxRows === "number" || async) {
+            /*
+              the defer is needed to:
+                - force "autosize" to activate the scrollbar when this.props.maxRows is passed
+                - support StyledComponents (see #71)
+            */
+            setTimeout(function () { return _this.textarea && autosize(_this.textarea); });
+        }
+        else {
+            this.textarea && autosize(this.textarea);
+        }
+        if (this.textarea) {
+            this.textarea.addEventListener(RESIZED, this.onResize);
+        }
+    };
+    TextareaAutosizeClass.prototype.componentWillUnmount = function () {
+        if (this.textarea) {
+            this.textarea.removeEventListener(RESIZED, this.onResize);
+            autosize.destroy(this.textarea);
+        }
+    };
+    TextareaAutosizeClass.prototype.render = function () {
+        var _this = this;
+        var _a = this, _b = _a.props, onResize = _b.onResize, maxRows = _b.maxRows, onChange = _b.onChange, style = _b.style, innerRef = _b.innerRef, children = _b.children, props = __rest(_b, ["onResize", "maxRows", "onChange", "style", "innerRef", "children"]), lineHeight = _a.state.lineHeight;
+        var maxHeight = maxRows && lineHeight ? lineHeight * maxRows : null;
+        return (React.createElement("textarea", __assign({}, props, { onChange: this.onChange, style: maxHeight ? __assign({}, style, { maxHeight: maxHeight }) : style, ref: function (element) {
+                _this.textarea = element;
+                if (typeof _this.props.innerRef === 'function') {
+                    _this.props.innerRef(element);
+                }
+                else if (_this.props.innerRef) {
+                    _this.props.innerRef.current = element;
+                }
+            } }), children));
+    };
+    TextareaAutosizeClass.prototype.componentDidUpdate = function () {
+        this.textarea && autosize.update(this.textarea);
+    };
+    TextareaAutosizeClass.defaultProps = {
+        rows: 1,
+        async: false
+    };
+    TextareaAutosizeClass.propTypes = {
+        rows: PropTypes.number,
+        maxRows: PropTypes.number,
+        onResize: PropTypes.func,
+        innerRef: PropTypes.any,
+        async: PropTypes.bool
+    };
+    return TextareaAutosizeClass;
+}(React.Component));
+exports.TextareaAutosize = React.forwardRef(function (props, ref) {
+    return React.createElement(TextareaAutosizeClass, __assign({}, props, { innerRef: ref }));
+});
+
+
+/***/ }),
+
+/***/ 4725:
+/***/ ((module) => {
+
+function stringifyNode(node, custom) {
+  var type = node.type;
+  var value = node.value;
+  var buf;
+  var customResult;
+
+  if (custom && (customResult = custom(node)) !== undefined) {
+    return customResult;
+  } else if (type === "word" || type === "space") {
+    return value;
+  } else if (type === "string") {
+    buf = node.quote || "";
+    return buf + value + (node.unclosed ? "" : buf);
+  } else if (type === "comment") {
+    return "/*" + value + (node.unclosed ? "" : "*/");
+  } else if (type === "div") {
+    return (node.before || "") + value + (node.after || "");
+  } else if (Array.isArray(node.nodes)) {
+    buf = stringify(node.nodes, custom);
+    if (type !== "function") {
+      return buf;
+    }
+    return (
+      value +
+      "(" +
+      (node.before || "") +
+      buf +
+      (node.after || "") +
+      (node.unclosed ? "" : ")")
+    );
+  }
+  return value;
+}
+
+function stringify(nodes, custom) {
+  var result, i;
+
+  if (Array.isArray(nodes)) {
+    result = "";
+    for (i = nodes.length - 1; ~i; i -= 1) {
+      result = stringifyNode(nodes[i], custom) + result;
+    }
+    return result;
+  }
+  return stringifyNode(nodes, custom);
+}
+
+module.exports = stringify;
+
+
+/***/ }),
+
+/***/ 5042:
+/***/ ((module) => {
+
+// This alphabet uses `A-Za-z0-9_-` symbols.
+// The order of characters is optimized for better gzip and brotli compression.
+// References to the same file (works both for gzip and brotli):
+// `'use`, `andom`, and `rict'`
+// References to the brotli default dictionary:
+// `-26T`, `1983`, `40px`, `75px`, `bush`, `jack`, `mind`, `very`, and `wolf`
+let urlAlphabet =
+  'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
+
+let customAlphabet = (alphabet, defaultSize = 21) => {
+  return (size = defaultSize) => {
+    let id = ''
+    // A compact alternative for `for (var i = 0; i < step; i++)`.
+    let i = size | 0
+    while (i--) {
+      // `| 0` is more compact and faster than `Math.floor()`.
+      id += alphabet[(Math.random() * alphabet.length) | 0]
+    }
+    return id
+  }
+}
+
+let nanoid = (size = 21) => {
+  let id = ''
+  // A compact alternative for `for (var i = 0; i < step; i++)`.
+  let i = size | 0
+  while (i--) {
+    // `| 0` is more compact and faster than `Math.floor()`.
+    id += urlAlphabet[(Math.random() * 64) | 0]
+  }
+  return id
+}
+
+module.exports = { nanoid, customAlphabet }
+
+
+/***/ }),
+
+/***/ 5215:
+/***/ ((module) => {
+
+"use strict";
+
+
+// do not edit .js files directly - edit src/index.jst
+
+
+
+module.exports = function equal(a, b) {
+  if (a === b) return true;
+
+  if (a && b && typeof a == 'object' && typeof b == 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    var length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length != b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (!equal(a[i], b[i])) return false;
+      return true;
+    }
+
+
+
+    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+
+    keys = Object.keys(a);
+    length = keys.length;
+    if (length !== Object.keys(b).length) return false;
+
+    for (i = length; i-- !== 0;)
+      if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+
+      if (!equal(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  // true if both NaN, false otherwise
+  return a!==a && b!==b;
+};
+
+
+/***/ }),
+
+/***/ 5380:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let { nanoid } = __webpack_require__(5042)
+let { isAbsolute, resolve } = __webpack_require__(197)
+let { SourceMapConsumer, SourceMapGenerator } = __webpack_require__(1866)
+let { fileURLToPath, pathToFileURL } = __webpack_require__(2739)
+
+let CssSyntaxError = __webpack_require__(356)
+let PreviousMap = __webpack_require__(5696)
+let terminalHighlight = __webpack_require__(9746)
+
+let fromOffsetCache = Symbol('fromOffsetCache')
+
+let sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator)
+let pathAvailable = Boolean(resolve && isAbsolute)
+
+class Input {
+  get from() {
+    return this.file || this.id
+  }
+
+  constructor(css, opts = {}) {
+    if (
+      css === null ||
+      typeof css === 'undefined' ||
+      (typeof css === 'object' && !css.toString)
+    ) {
+      throw new Error(`PostCSS received ${css} instead of CSS string`)
+    }
+
+    this.css = css.toString()
+
+    if (this.css[0] === '\uFEFF' || this.css[0] === '\uFFFE') {
+      this.hasBOM = true
+      this.css = this.css.slice(1)
+    } else {
+      this.hasBOM = false
+    }
+
+    this.document = this.css
+    if (opts.document) this.document = opts.document.toString()
+
+    if (opts.from) {
+      if (
+        !pathAvailable ||
+        /^\w+:\/\//.test(opts.from) ||
+        isAbsolute(opts.from)
+      ) {
+        this.file = opts.from
+      } else {
+        this.file = resolve(opts.from)
+      }
+    }
+
+    if (pathAvailable && sourceMapAvailable) {
+      let map = new PreviousMap(this.css, opts)
+      if (map.text) {
+        this.map = map
+        let file = map.consumer().file
+        if (!this.file && file) this.file = this.mapResolve(file)
+      }
+    }
+
+    if (!this.file) {
+      this.id = '<input css ' + nanoid(6) + '>'
+    }
+    if (this.map) this.map.file = this.from
+  }
+
+  error(message, line, column, opts = {}) {
+    let endColumn, endLine, result
+
+    if (line && typeof line === 'object') {
+      let start = line
+      let end = column
+      if (typeof start.offset === 'number') {
+        let pos = this.fromOffset(start.offset)
+        line = pos.line
+        column = pos.col
+      } else {
+        line = start.line
+        column = start.column
+      }
+      if (typeof end.offset === 'number') {
+        let pos = this.fromOffset(end.offset)
+        endLine = pos.line
+        endColumn = pos.col
+      } else {
+        endLine = end.line
+        endColumn = end.column
+      }
+    } else if (!column) {
+      let pos = this.fromOffset(line)
+      line = pos.line
+      column = pos.col
+    }
+
+    let origin = this.origin(line, column, endLine, endColumn)
+    if (origin) {
+      result = new CssSyntaxError(
+        message,
+        origin.endLine === undefined
+          ? origin.line
+          : { column: origin.column, line: origin.line },
+        origin.endLine === undefined
+          ? origin.column
+          : { column: origin.endColumn, line: origin.endLine },
+        origin.source,
+        origin.file,
+        opts.plugin
+      )
+    } else {
+      result = new CssSyntaxError(
+        message,
+        endLine === undefined ? line : { column, line },
+        endLine === undefined ? column : { column: endColumn, line: endLine },
+        this.css,
+        this.file,
+        opts.plugin
+      )
+    }
+
+    result.input = { column, endColumn, endLine, line, source: this.css }
+    if (this.file) {
+      if (pathToFileURL) {
+        result.input.url = pathToFileURL(this.file).toString()
+      }
+      result.input.file = this.file
+    }
+
+    return result
+  }
+
+  fromOffset(offset) {
+    let lastLine, lineToIndex
+    if (!this[fromOffsetCache]) {
+      let lines = this.css.split('\n')
+      lineToIndex = new Array(lines.length)
+      let prevIndex = 0
+
+      for (let i = 0, l = lines.length; i < l; i++) {
+        lineToIndex[i] = prevIndex
+        prevIndex += lines[i].length + 1
+      }
+
+      this[fromOffsetCache] = lineToIndex
+    } else {
+      lineToIndex = this[fromOffsetCache]
+    }
+    lastLine = lineToIndex[lineToIndex.length - 1]
+
+    let min = 0
+    if (offset >= lastLine) {
+      min = lineToIndex.length - 1
+    } else {
+      let max = lineToIndex.length - 2
+      let mid
+      while (min < max) {
+        mid = min + ((max - min) >> 1)
+        if (offset < lineToIndex[mid]) {
+          max = mid - 1
+        } else if (offset >= lineToIndex[mid + 1]) {
+          min = mid + 1
+        } else {
+          min = mid
+          break
+        }
+      }
+    }
+    return {
+      col: offset - lineToIndex[min] + 1,
+      line: min + 1
+    }
+  }
+
+  mapResolve(file) {
+    if (/^\w+:\/\//.test(file)) {
+      return file
+    }
+    return resolve(this.map.consumer().sourceRoot || this.map.root || '.', file)
+  }
+
+  origin(line, column, endLine, endColumn) {
+    if (!this.map) return false
+    let consumer = this.map.consumer()
+
+    let from = consumer.originalPositionFor({ column, line })
+    if (!from.source) return false
+
+    let to
+    if (typeof endLine === 'number') {
+      to = consumer.originalPositionFor({ column: endColumn, line: endLine })
+    }
+
+    let fromUrl
+
+    if (isAbsolute(from.source)) {
+      fromUrl = pathToFileURL(from.source)
+    } else {
+      fromUrl = new URL(
+        from.source,
+        this.map.consumer().sourceRoot || pathToFileURL(this.map.mapFile)
+      )
+    }
+
+    let result = {
+      column: from.column,
+      endColumn: to && to.column,
+      endLine: to && to.line,
+      line: from.line,
+      url: fromUrl.toString()
+    }
+
+    if (fromUrl.protocol === 'file:') {
+      if (fileURLToPath) {
+        result.file = fileURLToPath(fromUrl)
+      } else {
+        /* c8 ignore next 2 */
+        throw new Error(`file: protocol is not available in this PostCSS build`)
+      }
+    }
+
+    let source = consumer.sourceContentFor(from.source)
+    if (source) result.source = source
+
+    return result
+  }
+
+  toJSON() {
+    let json = {}
+    for (let name of ['hasBOM', 'css', 'file', 'id']) {
+      if (this[name] != null) {
+        json[name] = this[name]
+      }
+    }
+    if (this.map) {
+      json.map = { ...this.map }
+      if (json.map.consumerCache) {
+        json.map.consumerCache = undefined
+      }
+    }
+    return json
+  }
+}
+
+module.exports = Input
+Input.default = Input
+
+if (terminalHighlight && terminalHighlight.registerInput) {
+  terminalHighlight.registerInput(Input)
+}
+
+
+/***/ }),
+
+/***/ 5404:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const CSSValueParser = __webpack_require__(1544)
+
+/**
+ * @type {import('postcss').PluginCreator}
+ */
+module.exports = (opts) => {
+
+  const DEFAULTS = {
+    skipHostRelativeUrls: true,
+  }
+  const config = Object.assign(DEFAULTS, opts)
+
+  return {
+    postcssPlugin: 'rebaseUrl',
+
+    Declaration(decl) {
+      // The faster way to find Declaration node
+      const parsedValue = CSSValueParser(decl.value)
+
+      let valueChanged = false
+      parsedValue.walk(node => {
+        if (node.type !== 'function' || node.value !== 'url') {
+          return
+        }
+
+        const urlVal = node.nodes[0].value
+
+        // bases relative URLs with rootUrl
+        const basedUrl = new URL(urlVal, opts.rootUrl)
+
+        // skip host-relative, already normalized URLs (e.g. `/images/image.jpg`, without `..`s)
+        if ((basedUrl.pathname === urlVal) && config.skipHostRelativeUrls) {
+          return false // skip this value
+        }
+
+        node.nodes[0].value = basedUrl.toString()
+        valueChanged = true
+
+        return false // do not walk deeper
+      })
+
+      if (valueChanged) {
+        decl.value = CSSValueParser.stringify(parsedValue)
+      }
+
+    }
+  }
+}
+
+module.exports.postcss = true
+
+
+/***/ }),
+
+/***/ 5417:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+/*istanbul ignore start*/
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = Diff;
+
+/*istanbul ignore end*/
+function Diff() {}
+
+Diff.prototype = {
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  diff: function diff(oldString, newString) {
+    /*istanbul ignore start*/
+    var
+    /*istanbul ignore end*/
+    options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var callback = options.callback;
+
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+
+    this.options = options;
+    var self = this;
+
+    function done(value) {
+      if (callback) {
+        setTimeout(function () {
+          callback(undefined, value);
+        }, 0);
+        return true;
+      } else {
+        return value;
+      }
+    } // Allow subclasses to massage the input prior to running
+
+
+    oldString = this.castInput(oldString);
+    newString = this.castInput(newString);
+    oldString = this.removeEmpty(this.tokenize(oldString));
+    newString = this.removeEmpty(this.tokenize(newString));
+    var newLen = newString.length,
+        oldLen = oldString.length;
+    var editLength = 1;
+    var maxEditLength = newLen + oldLen;
+    var bestPath = [{
+      newPos: -1,
+      components: []
+    }]; // Seed editLength = 0, i.e. the content starts with the same values
+
+    var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+
+    if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
+      // Identity per the equality and tokenizer
+      return done([{
+        value: this.join(newString),
+        count: newString.length
+      }]);
+    } // Main worker method. checks all permutations of a given edit length for acceptance.
+
+
+    function execEditLength() {
+      for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
+        var basePath =
+        /*istanbul ignore start*/
+        void 0
+        /*istanbul ignore end*/
+        ;
+
+        var addPath = bestPath[diagonalPath - 1],
+            removePath = bestPath[diagonalPath + 1],
+            _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
+
+        if (addPath) {
+          // No one else is going to attempt to use this value, clear it
+          bestPath[diagonalPath - 1] = undefined;
+        }
+
+        var canAdd = addPath && addPath.newPos + 1 < newLen,
+            canRemove = removePath && 0 <= _oldPos && _oldPos < oldLen;
+
+        if (!canAdd && !canRemove) {
+          // If this path is a terminal then prune
+          bestPath[diagonalPath] = undefined;
+          continue;
+        } // Select the diagonal that we want to branch from. We select the prior
+        // path whose position in the new string is the farthest from the origin
+        // and does not pass the bounds of the diff graph
+
+
+        if (!canAdd || canRemove && addPath.newPos < removePath.newPos) {
+          basePath = clonePath(removePath);
+          self.pushComponent(basePath.components, undefined, true);
+        } else {
+          basePath = addPath; // No need to clone, we've pulled it from the list
+
+          basePath.newPos++;
+          self.pushComponent(basePath.components, true, undefined);
+        }
+
+        _oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath); // If we have hit the end of both strings, then we are done
+
+        if (basePath.newPos + 1 >= newLen && _oldPos + 1 >= oldLen) {
+          return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
+        } else {
+          // Otherwise track this path as a potential candidate and continue.
+          bestPath[diagonalPath] = basePath;
+        }
+      }
+
+      editLength++;
+    } // Performs the length of edit iteration. Is a bit fugly as this has to support the
+    // sync and async mode which is never fun. Loops over execEditLength until a value
+    // is produced.
+
+
+    if (callback) {
+      (function exec() {
+        setTimeout(function () {
+          // This should not happen, but we want to be safe.
+
+          /* istanbul ignore next */
+          if (editLength > maxEditLength) {
+            return callback();
+          }
+
+          if (!execEditLength()) {
+            exec();
+          }
+        }, 0);
+      })();
+    } else {
+      while (editLength <= maxEditLength) {
+        var ret = execEditLength();
+
+        if (ret) {
+          return ret;
+        }
+      }
+    }
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  pushComponent: function pushComponent(components, added, removed) {
+    var last = components[components.length - 1];
+
+    if (last && last.added === added && last.removed === removed) {
+      // We need to clone here as the component clone operation is just
+      // as shallow array clone
+      components[components.length - 1] = {
+        count: last.count + 1,
+        added: added,
+        removed: removed
+      };
+    } else {
+      components.push({
+        count: 1,
+        added: added,
+        removed: removed
+      });
+    }
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
+    var newLen = newString.length,
+        oldLen = oldString.length,
+        newPos = basePath.newPos,
+        oldPos = newPos - diagonalPath,
+        commonCount = 0;
+
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+      newPos++;
+      oldPos++;
+      commonCount++;
+    }
+
+    if (commonCount) {
+      basePath.components.push({
+        count: commonCount
+      });
+    }
+
+    basePath.newPos = newPos;
+    return oldPos;
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  equals: function equals(left, right) {
+    if (this.options.comparator) {
+      return this.options.comparator(left, right);
+    } else {
+      return left === right || this.options.ignoreCase && left.toLowerCase() === right.toLowerCase();
+    }
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  removeEmpty: function removeEmpty(array) {
+    var ret = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i]) {
+        ret.push(array[i]);
+      }
+    }
+
+    return ret;
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  castInput: function castInput(value) {
+    return value;
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  tokenize: function tokenize(value) {
+    return value.split('');
+  },
+
+  /*istanbul ignore start*/
+
+  /*istanbul ignore end*/
+  join: function join(chars) {
+    return chars.join('');
+  }
+};
+
+function buildValues(diff, components, newString, oldString, useLongestToken) {
+  var componentPos = 0,
+      componentLen = components.length,
+      newPos = 0,
+      oldPos = 0;
+
+  for (; componentPos < componentLen; componentPos++) {
+    var component = components[componentPos];
+
+    if (!component.removed) {
+      if (!component.added && useLongestToken) {
+        var value = newString.slice(newPos, newPos + component.count);
+        value = value.map(function (value, i) {
+          var oldValue = oldString[oldPos + i];
+          return oldValue.length > value.length ? oldValue : value;
+        });
+        component.value = diff.join(value);
+      } else {
+        component.value = diff.join(newString.slice(newPos, newPos + component.count));
+      }
+
+      newPos += component.count; // Common case
+
+      if (!component.added) {
+        oldPos += component.count;
+      }
+    } else {
+      component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
+      oldPos += component.count; // Reverse add and remove so removes are output first to match common convention
+      // The diffing algorithm is tied to add then remove output and this is the simplest
+      // route to get the desired output with minimal overhead.
+
+      if (componentPos && components[componentPos - 1].added) {
+        var tmp = components[componentPos - 1];
+        components[componentPos - 1] = components[componentPos];
+        components[componentPos] = tmp;
+      }
+    }
+  } // Special case handle for when one terminal is ignored (i.e. whitespace).
+  // For this case we merge the terminal into the prior string and drop the change.
+  // This is only available for string mode.
+
+
+  var lastComponent = components[componentLen - 1];
+
+  if (componentLen > 1 && typeof lastComponent.value === 'string' && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
+    components[componentLen - 2].value += lastComponent.value;
+    components.pop();
+  }
+
+  return components;
+}
+
+function clonePath(path) {
+  return {
+    newPos: path.newPos,
+    components: path.components.slice(0)
+  };
+}
 
 
 /***/ }),
@@ -5574,71 +5219,1468 @@ PreviousMap.default = PreviousMap
 
 /***/ }),
 
-/***/ 9656:
+/***/ 5776:
+/***/ ((module) => {
+
+"use strict";
+
+
+class Warning {
+  constructor(text, opts = {}) {
+    this.type = 'warning'
+    this.text = text
+
+    if (opts.node && opts.node.source) {
+      let range = opts.node.rangeBy(opts)
+      this.line = range.start.line
+      this.column = range.start.column
+      this.endLine = range.end.line
+      this.endColumn = range.end.column
+    }
+
+    for (let opt in opts) this[opt] = opts[opt]
+  }
+
+  toString() {
+    if (this.node) {
+      return this.node.error(this.text, {
+        index: this.index,
+        plugin: this.plugin,
+        word: this.word
+      }).message
+    }
+
+    if (this.plugin) {
+      return this.plugin + ': ' + this.text
+    }
+
+    return this.text
+  }
+}
+
+module.exports = Warning
+Warning.default = Warning
+
+
+/***/ }),
+
+/***/ 5826:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+if (false) { var throwOnDirectAccess, ReactIs; } else {
+  // By explicitly using `prop-types` you are opting into new production behavior.
+  // http://fb.me/prop-types-in-prod
+  module.exports = __webpack_require__(628)();
+}
+
+
+/***/ }),
+
+/***/ 6109:
+/***/ ((module) => {
+
+// This code has been refactored for 140 bytes
+// You can see the original here: https://github.com/twolfson/computedStyle/blob/04cd1da2e30fa45844f95f5cb1ac898e9b9ef050/lib/computedStyle.js
+var computedStyle = function (el, prop, getComputedStyle) {
+  getComputedStyle = window.getComputedStyle;
+
+  // In one fell swoop
+  return (
+    // If we have getComputedStyle
+    getComputedStyle ?
+      // Query it
+      // TODO: From CSS-Query notes, we might need (node, null) for FF
+      getComputedStyle(el) :
+
+    // Otherwise, we are in IE and use currentStyle
+      el.currentStyle
+  )[
+    // Switch to camelCase for CSSOM
+    // DEV: Grabbed from jQuery
+    // https://github.com/jquery/jquery/blob/1.9-stable/src/css.js#L191-L194
+    // https://github.com/jquery/jquery/blob/1.9-stable/src/core.js#L593-L597
+    prop.replace(/-(\w)/gi, function (word, letter) {
+      return letter.toUpperCase();
+    })
+  ];
+};
+
+module.exports = computedStyle;
+
+
+/***/ }),
+
+/***/ 6589:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Document = __webpack_require__(271)
-let LazyResult = __webpack_require__(448)
-let NoWorkResult = __webpack_require__(7661)
-let Root = __webpack_require__(9434)
+let Node = __webpack_require__(7490)
 
-class Processor {
-  constructor(plugins = []) {
-    this.version = '8.4.49'
-    this.plugins = this.normalize(plugins)
-  }
-
-  normalize(plugins) {
-    let normalized = []
-    for (let i of plugins) {
-      if (i.postcss === true) {
-        i = i()
-      } else if (i.postcss) {
-        i = i.postcss
-      }
-
-      if (typeof i === 'object' && Array.isArray(i.plugins)) {
-        normalized = normalized.concat(i.plugins)
-      } else if (typeof i === 'object' && i.postcssPlugin) {
-        normalized.push(i)
-      } else if (typeof i === 'function') {
-        normalized.push(i)
-      } else if (typeof i === 'object' && (i.parse || i.stringify)) {
-        if (false) {}
-      } else {
-        throw new Error(i + ' is not a PostCSS plugin')
-      }
-    }
-    return normalized
-  }
-
-  process(css, opts = {}) {
-    if (
-      !this.plugins.length &&
-      !opts.parser &&
-      !opts.stringifier &&
-      !opts.syntax
-    ) {
-      return new NoWorkResult(this, css, opts)
-    } else {
-      return new LazyResult(this, css, opts)
-    }
-  }
-
-  use(plugin) {
-    this.plugins = this.plugins.concat(this.normalize([plugin]))
-    return this
+class Comment extends Node {
+  constructor(defaults) {
+    super(defaults)
+    this.type = 'comment'
   }
 }
 
-module.exports = Processor
-Processor.default = Processor
+module.exports = Comment
+Comment.default = Comment
 
-Root.registerProcessor(Processor)
-Document.registerProcessor(Processor)
+
+/***/ }),
+
+/***/ 7191:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+/**
+ * Copyright (c) 2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @providesModule normalizeWheel
+ * @typechecks
+ */
+
+
+
+var UserAgent_DEPRECATED = __webpack_require__(2213);
+
+var isEventSupported = __webpack_require__(1087);
+
+
+// Reasonable defaults
+var PIXEL_STEP  = 10;
+var LINE_HEIGHT = 40;
+var PAGE_HEIGHT = 800;
+
+/**
+ * Mouse wheel (and 2-finger trackpad) support on the web sucks.  It is
+ * complicated, thus this doc is long and (hopefully) detailed enough to answer
+ * your questions.
+ *
+ * If you need to react to the mouse wheel in a predictable way, this code is
+ * like your bestest friend. * hugs *
+ *
+ * As of today, there are 4 DOM event types you can listen to:
+ *
+ *   'wheel'                -- Chrome(31+), FF(17+), IE(9+)
+ *   'mousewheel'           -- Chrome, IE(6+), Opera, Safari
+ *   'MozMousePixelScroll'  -- FF(3.5 only!) (2010-2013) -- don't bother!
+ *   'DOMMouseScroll'       -- FF(0.9.7+) since 2003
+ *
+ * So what to do?  The is the best:
+ *
+ *   normalizeWheel.getEventType();
+ *
+ * In your event callback, use this code to get sane interpretation of the
+ * deltas.  This code will return an object with properties:
+ *
+ *   spinX   -- normalized spin speed (use for zoom) - x plane
+ *   spinY   -- " - y plane
+ *   pixelX  -- normalized distance (to pixels) - x plane
+ *   pixelY  -- " - y plane
+ *
+ * Wheel values are provided by the browser assuming you are using the wheel to
+ * scroll a web page by a number of lines or pixels (or pages).  Values can vary
+ * significantly on different platforms and browsers, forgetting that you can
+ * scroll at different speeds.  Some devices (like trackpads) emit more events
+ * at smaller increments with fine granularity, and some emit massive jumps with
+ * linear speed or acceleration.
+ *
+ * This code does its best to normalize the deltas for you:
+ *
+ *   - spin is trying to normalize how far the wheel was spun (or trackpad
+ *     dragged).  This is super useful for zoom support where you want to
+ *     throw away the chunky scroll steps on the PC and make those equal to
+ *     the slow and smooth tiny steps on the Mac. Key data: This code tries to
+ *     resolve a single slow step on a wheel to 1.
+ *
+ *   - pixel is normalizing the desired scroll delta in pixel units.  You'll
+ *     get the crazy differences between browsers, but at least it'll be in
+ *     pixels!
+ *
+ *   - positive value indicates scrolling DOWN/RIGHT, negative UP/LEFT.  This
+ *     should translate to positive value zooming IN, negative zooming OUT.
+ *     This matches the newer 'wheel' event.
+ *
+ * Why are there spinX, spinY (or pixels)?
+ *
+ *   - spinX is a 2-finger side drag on the trackpad, and a shift + wheel turn
+ *     with a mouse.  It results in side-scrolling in the browser by default.
+ *
+ *   - spinY is what you expect -- it's the classic axis of a mouse wheel.
+ *
+ *   - I dropped spinZ/pixelZ.  It is supported by the DOM 3 'wheel' event and
+ *     probably is by browsers in conjunction with fancy 3D controllers .. but
+ *     you know.
+ *
+ * Implementation info:
+ *
+ * Examples of 'wheel' event if you scroll slowly (down) by one step with an
+ * average mouse:
+ *
+ *   OS X + Chrome  (mouse)     -    4   pixel delta  (wheelDelta -120)
+ *   OS X + Safari  (mouse)     -  N/A   pixel delta  (wheelDelta  -12)
+ *   OS X + Firefox (mouse)     -    0.1 line  delta  (wheelDelta  N/A)
+ *   Win8 + Chrome  (mouse)     -  100   pixel delta  (wheelDelta -120)
+ *   Win8 + Firefox (mouse)     -    3   line  delta  (wheelDelta -120)
+ *
+ * On the trackpad:
+ *
+ *   OS X + Chrome  (trackpad)  -    2   pixel delta  (wheelDelta   -6)
+ *   OS X + Firefox (trackpad)  -    1   pixel delta  (wheelDelta  N/A)
+ *
+ * On other/older browsers.. it's more complicated as there can be multiple and
+ * also missing delta values.
+ *
+ * The 'wheel' event is more standard:
+ *
+ * http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+ *
+ * The basics is that it includes a unit, deltaMode (pixels, lines, pages), and
+ * deltaX, deltaY and deltaZ.  Some browsers provide other values to maintain
+ * backward compatibility with older events.  Those other values help us
+ * better normalize spin speed.  Example of what the browsers provide:
+ *
+ *                          | event.wheelDelta | event.detail
+ *        ------------------+------------------+--------------
+ *          Safari v5/OS X  |       -120       |       0
+ *          Safari v5/Win7  |       -120       |       0
+ *         Chrome v17/OS X  |       -120       |       0
+ *         Chrome v17/Win7  |       -120       |       0
+ *                IE9/Win7  |       -120       |   undefined
+ *         Firefox v4/OS X  |     undefined    |       1
+ *         Firefox v4/Win7  |     undefined    |       3
+ *
+ */
+function normalizeWheel(/*object*/ event) /*object*/ {
+  var sX = 0, sY = 0,       // spinX, spinY
+      pX = 0, pY = 0;       // pixelX, pixelY
+
+  // Legacy
+  if ('detail'      in event) { sY = event.detail; }
+  if ('wheelDelta'  in event) { sY = -event.wheelDelta / 120; }
+  if ('wheelDeltaY' in event) { sY = -event.wheelDeltaY / 120; }
+  if ('wheelDeltaX' in event) { sX = -event.wheelDeltaX / 120; }
+
+  // side scrolling on FF with DOMMouseScroll
+  if ( 'axis' in event && event.axis === event.HORIZONTAL_AXIS ) {
+    sX = sY;
+    sY = 0;
+  }
+
+  pX = sX * PIXEL_STEP;
+  pY = sY * PIXEL_STEP;
+
+  if ('deltaY' in event) { pY = event.deltaY; }
+  if ('deltaX' in event) { pX = event.deltaX; }
+
+  if ((pX || pY) && event.deltaMode) {
+    if (event.deltaMode == 1) {          // delta in LINE units
+      pX *= LINE_HEIGHT;
+      pY *= LINE_HEIGHT;
+    } else {                             // delta in PAGE units
+      pX *= PAGE_HEIGHT;
+      pY *= PAGE_HEIGHT;
+    }
+  }
+
+  // Fall-back if spin cannot be determined
+  if (pX && !sX) { sX = (pX < 1) ? -1 : 1; }
+  if (pY && !sY) { sY = (pY < 1) ? -1 : 1; }
+
+  return { spinX  : sX,
+           spinY  : sY,
+           pixelX : pX,
+           pixelY : pY };
+}
+
+
+/**
+ * The best combination if you prefer spinX + spinY normalization.  It favors
+ * the older DOMMouseScroll for Firefox, as FF does not include wheelDelta with
+ * 'wheel' event, making spin speed determination impossible.
+ */
+normalizeWheel.getEventType = function() /*string*/ {
+  return (UserAgent_DEPRECATED.firefox())
+           ? 'DOMMouseScroll'
+           : (isEventSupported('wheel'))
+               ? 'wheel'
+               : 'mousewheel';
+};
+
+module.exports = normalizeWheel;
+
+
+/***/ }),
+
+/***/ 7374:
+/***/ ((module) => {
+
+"use strict";
+
+
+let list = {
+  comma(string) {
+    return list.split(string, [','], true)
+  },
+
+  space(string) {
+    let spaces = [' ', '\n', '\t']
+    return list.split(string, spaces)
+  },
+
+  split(string, separators, last) {
+    let array = []
+    let current = ''
+    let split = false
+
+    let func = 0
+    let inQuote = false
+    let prevQuote = ''
+    let escape = false
+
+    for (let letter of string) {
+      if (escape) {
+        escape = false
+      } else if (letter === '\\') {
+        escape = true
+      } else if (inQuote) {
+        if (letter === prevQuote) {
+          inQuote = false
+        }
+      } else if (letter === '"' || letter === "'") {
+        inQuote = true
+        prevQuote = letter
+      } else if (letter === '(') {
+        func += 1
+      } else if (letter === ')') {
+        if (func > 0) func -= 1
+      } else if (func === 0) {
+        if (separators.includes(letter)) split = true
+      }
+
+      if (split) {
+        if (current !== '') array.push(current.trim())
+        current = ''
+        split = false
+      } else {
+        current += letter
+      }
+    }
+
+    if (last || current !== '') array.push(current.trim())
+    return array
+  }
+}
+
+module.exports = list
+list.default = list
+
+
+/***/ }),
+
+/***/ 7490:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let CssSyntaxError = __webpack_require__(356)
+let Stringifier = __webpack_require__(346)
+let stringify = __webpack_require__(633)
+let { isClean, my } = __webpack_require__(1381)
+
+function cloneNode(obj, parent) {
+  let cloned = new obj.constructor()
+
+  for (let i in obj) {
+    if (!Object.prototype.hasOwnProperty.call(obj, i)) {
+      /* c8 ignore next 2 */
+      continue
+    }
+    if (i === 'proxyCache') continue
+    let value = obj[i]
+    let type = typeof value
+
+    if (i === 'parent' && type === 'object') {
+      if (parent) cloned[i] = parent
+    } else if (i === 'source') {
+      cloned[i] = value
+    } else if (Array.isArray(value)) {
+      cloned[i] = value.map(j => cloneNode(j, cloned))
+    } else {
+      if (type === 'object' && value !== null) value = cloneNode(value)
+      cloned[i] = value
+    }
+  }
+
+  return cloned
+}
+
+function sourceOffset(inputCSS, position) {
+  // Not all custom syntaxes support `offset` in `source.start` and `source.end`
+  if (
+    position &&
+    typeof position.offset !== 'undefined'
+  ) {
+    return position.offset;
+  }
+
+  let column = 1
+  let line = 1
+  let offset = 0
+
+  for (let i = 0; i < inputCSS.length; i++) {
+    if (line === position.line && column === position.column) {
+      offset = i
+      break
+    }
+
+    if (inputCSS[i] === '\n') {
+      column = 1
+      line += 1
+    } else {
+      column += 1
+    }
+  }
+
+  return offset
+}
+
+class Node {
+  get proxyOf() {
+    return this
+  }
+
+  constructor(defaults = {}) {
+    this.raws = {}
+    this[isClean] = false
+    this[my] = true
+
+    for (let name in defaults) {
+      if (name === 'nodes') {
+        this.nodes = []
+        for (let node of defaults[name]) {
+          if (typeof node.clone === 'function') {
+            this.append(node.clone())
+          } else {
+            this.append(node)
+          }
+        }
+      } else {
+        this[name] = defaults[name]
+      }
+    }
+  }
+
+  addToError(error) {
+    error.postcssNode = this
+    if (error.stack && this.source && /\n\s{4}at /.test(error.stack)) {
+      let s = this.source
+      error.stack = error.stack.replace(
+        /\n\s{4}at /,
+        `$&${s.input.from}:${s.start.line}:${s.start.column}$&`
+      )
+    }
+    return error
+  }
+
+  after(add) {
+    this.parent.insertAfter(this, add)
+    return this
+  }
+
+  assign(overrides = {}) {
+    for (let name in overrides) {
+      this[name] = overrides[name]
+    }
+    return this
+  }
+
+  before(add) {
+    this.parent.insertBefore(this, add)
+    return this
+  }
+
+  cleanRaws(keepBetween) {
+    delete this.raws.before
+    delete this.raws.after
+    if (!keepBetween) delete this.raws.between
+  }
+
+  clone(overrides = {}) {
+    let cloned = cloneNode(this)
+    for (let name in overrides) {
+      cloned[name] = overrides[name]
+    }
+    return cloned
+  }
+
+  cloneAfter(overrides = {}) {
+    let cloned = this.clone(overrides)
+    this.parent.insertAfter(this, cloned)
+    return cloned
+  }
+
+  cloneBefore(overrides = {}) {
+    let cloned = this.clone(overrides)
+    this.parent.insertBefore(this, cloned)
+    return cloned
+  }
+
+  error(message, opts = {}) {
+    if (this.source) {
+      let { end, start } = this.rangeBy(opts)
+      return this.source.input.error(
+        message,
+        { column: start.column, line: start.line },
+        { column: end.column, line: end.line },
+        opts
+      )
+    }
+    return new CssSyntaxError(message)
+  }
+
+  getProxyProcessor() {
+    return {
+      get(node, prop) {
+        if (prop === 'proxyOf') {
+          return node
+        } else if (prop === 'root') {
+          return () => node.root().toProxy()
+        } else {
+          return node[prop]
+        }
+      },
+
+      set(node, prop, value) {
+        if (node[prop] === value) return true
+        node[prop] = value
+        if (
+          prop === 'prop' ||
+          prop === 'value' ||
+          prop === 'name' ||
+          prop === 'params' ||
+          prop === 'important' ||
+          /* c8 ignore next */
+          prop === 'text'
+        ) {
+          node.markDirty()
+        }
+        return true
+      }
+    }
+  }
+
+  /* c8 ignore next 3 */
+  markClean() {
+    this[isClean] = true
+  }
+
+  markDirty() {
+    if (this[isClean]) {
+      this[isClean] = false
+      let next = this
+      while ((next = next.parent)) {
+        next[isClean] = false
+      }
+    }
+  }
+
+  next() {
+    if (!this.parent) return undefined
+    let index = this.parent.index(this)
+    return this.parent.nodes[index + 1]
+  }
+
+  positionBy(opts) {
+    let pos = this.source.start
+    if (opts.index) {
+      pos = this.positionInside(opts.index)
+    } else if (opts.word) {
+      let inputString = ('document' in this.source.input)
+        ? this.source.input.document
+        : this.source.input.css
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      )
+      let index = stringRepresentation.indexOf(opts.word)
+      if (index !== -1) pos = this.positionInside(index)
+    }
+    return pos
+  }
+
+  positionInside(index) {
+    let column = this.source.start.column
+    let line = this.source.start.line
+    let inputString = ('document' in this.source.input)
+      ? this.source.input.document
+      : this.source.input.css
+    let offset = sourceOffset(inputString, this.source.start)
+    let end = offset + index
+
+    for (let i = offset; i < end; i++) {
+      if (inputString[i] === '\n') {
+        column = 1
+        line += 1
+      } else {
+        column += 1
+      }
+    }
+
+    return { column, line }
+  }
+
+  prev() {
+    if (!this.parent) return undefined
+    let index = this.parent.index(this)
+    return this.parent.nodes[index - 1]
+  }
+
+  rangeBy(opts) {
+    let start = {
+      column: this.source.start.column,
+      line: this.source.start.line
+    }
+    let end = this.source.end
+      ? {
+          column: this.source.end.column + 1,
+          line: this.source.end.line
+        }
+      : {
+          column: start.column + 1,
+          line: start.line
+        }
+
+    if (opts.word) {
+      let inputString = ('document' in this.source.input)
+        ? this.source.input.document
+        : this.source.input.css
+      let stringRepresentation = inputString.slice(
+        sourceOffset(inputString, this.source.start),
+        sourceOffset(inputString, this.source.end)
+      )
+      let index = stringRepresentation.indexOf(opts.word)
+      if (index !== -1) {
+        start = this.positionInside(index)
+        end = this.positionInside(
+          index + opts.word.length,
+        )
+      }
+    } else {
+      if (opts.start) {
+        start = {
+          column: opts.start.column,
+          line: opts.start.line
+        }
+      } else if (opts.index) {
+        start = this.positionInside(opts.index)
+      }
+
+      if (opts.end) {
+        end = {
+          column: opts.end.column,
+          line: opts.end.line
+        }
+      } else if (typeof opts.endIndex === 'number') {
+        end = this.positionInside(opts.endIndex)
+      } else if (opts.index) {
+        end = this.positionInside(opts.index + 1)
+      }
+    }
+
+    if (
+      end.line < start.line ||
+      (end.line === start.line && end.column <= start.column)
+    ) {
+      end = { column: start.column + 1, line: start.line }
+    }
+
+    return { end, start }
+  }
+
+  raw(prop, defaultType) {
+    let str = new Stringifier()
+    return str.raw(this, prop, defaultType)
+  }
+
+  remove() {
+    if (this.parent) {
+      this.parent.removeChild(this)
+    }
+    this.parent = undefined
+    return this
+  }
+
+  replaceWith(...nodes) {
+    if (this.parent) {
+      let bookmark = this
+      let foundSelf = false
+      for (let node of nodes) {
+        if (node === this) {
+          foundSelf = true
+        } else if (foundSelf) {
+          this.parent.insertAfter(bookmark, node)
+          bookmark = node
+        } else {
+          this.parent.insertBefore(bookmark, node)
+        }
+      }
+
+      if (!foundSelf) {
+        this.remove()
+      }
+    }
+
+    return this
+  }
+
+  root() {
+    let result = this
+    while (result.parent && result.parent.type !== 'document') {
+      result = result.parent
+    }
+    return result
+  }
+
+  toJSON(_, inputs) {
+    let fixed = {}
+    let emitInputs = inputs == null
+    inputs = inputs || new Map()
+    let inputsNextIndex = 0
+
+    for (let name in this) {
+      if (!Object.prototype.hasOwnProperty.call(this, name)) {
+        /* c8 ignore next 2 */
+        continue
+      }
+      if (name === 'parent' || name === 'proxyCache') continue
+      let value = this[name]
+
+      if (Array.isArray(value)) {
+        fixed[name] = value.map(i => {
+          if (typeof i === 'object' && i.toJSON) {
+            return i.toJSON(null, inputs)
+          } else {
+            return i
+          }
+        })
+      } else if (typeof value === 'object' && value.toJSON) {
+        fixed[name] = value.toJSON(null, inputs)
+      } else if (name === 'source') {
+        let inputId = inputs.get(value.input)
+        if (inputId == null) {
+          inputId = inputsNextIndex
+          inputs.set(value.input, inputsNextIndex)
+          inputsNextIndex++
+        }
+        fixed[name] = {
+          end: value.end,
+          inputId,
+          start: value.start
+        }
+      } else {
+        fixed[name] = value
+      }
+    }
+
+    if (emitInputs) {
+      fixed.inputs = [...inputs.keys()].map(input => input.toJSON())
+    }
+
+    return fixed
+  }
+
+  toProxy() {
+    if (!this.proxyCache) {
+      this.proxyCache = new Proxy(this, this.getProxyProcessor())
+    }
+    return this.proxyCache
+  }
+
+  toString(stringifier = stringify) {
+    if (stringifier.stringify) stringifier = stringifier.stringify
+    let result = ''
+    stringifier(this, i => {
+      result += i
+    })
+    return result
+  }
+
+  warn(result, text, opts) {
+    let data = { node: this }
+    for (let i in opts) data[i] = opts[i]
+    return result.warn(text, data)
+  }
+}
+
+module.exports = Node
+Node.default = Node
+
+
+/***/ }),
+
+/***/ 7520:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = __webpack_require__(7191);
+
+
+/***/ }),
+
+/***/ 7661:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+let MapGenerator = __webpack_require__(1670)
+let parse = __webpack_require__(4295)
+const Result = __webpack_require__(9055)
+let stringify = __webpack_require__(633)
+let warnOnce = __webpack_require__(3122)
+
+class NoWorkResult {
+  get content() {
+    return this.result.css
+  }
+
+  get css() {
+    return this.result.css
+  }
+
+  get map() {
+    return this.result.map
+  }
+
+  get messages() {
+    return []
+  }
+
+  get opts() {
+    return this.result.opts
+  }
+
+  get processor() {
+    return this.result.processor
+  }
+
+  get root() {
+    if (this._root) {
+      return this._root
+    }
+
+    let root
+    let parser = parse
+
+    try {
+      root = parser(this._css, this._opts)
+    } catch (error) {
+      this.error = error
+    }
+
+    if (this.error) {
+      throw this.error
+    } else {
+      this._root = root
+      return root
+    }
+  }
+
+  get [Symbol.toStringTag]() {
+    return 'NoWorkResult'
+  }
+
+  constructor(processor, css, opts) {
+    css = css.toString()
+    this.stringified = false
+
+    this._processor = processor
+    this._css = css
+    this._opts = opts
+    this._map = undefined
+    let root
+
+    let str = stringify
+    this.result = new Result(this._processor, root, this._opts)
+    this.result.css = css
+
+    let self = this
+    Object.defineProperty(this.result, 'root', {
+      get() {
+        return self.root
+      }
+    })
+
+    let map = new MapGenerator(str, root, this._opts, css)
+    if (map.isMap()) {
+      let [generatedCSS, generatedMap] = map.generate()
+      if (generatedCSS) {
+        this.result.css = generatedCSS
+      }
+      if (generatedMap) {
+        this.result.map = generatedMap
+      }
+    } else {
+      map.clearAnnotation()
+      this.result.css = map.css
+    }
+  }
+
+  async() {
+    if (this.error) return Promise.reject(this.error)
+    return Promise.resolve(this.result)
+  }
+
+  catch(onRejected) {
+    return this.async().catch(onRejected)
+  }
+
+  finally(onFinally) {
+    return this.async().then(onFinally, onFinally)
+  }
+
+  sync() {
+    if (this.error) throw this.error
+    return this.result
+  }
+
+  then(onFulfilled, onRejected) {
+    if (false) {}
+
+    return this.async().then(onFulfilled, onRejected)
+  }
+
+  toString() {
+    return this._css
+  }
+
+  warnings() {
+    return []
+  }
+}
+
+module.exports = NoWorkResult
+NoWorkResult.default = NoWorkResult
+
+
+/***/ }),
+
+/***/ 7734:
+/***/ ((module) => {
+
+"use strict";
+
+
+// do not edit .js files directly - edit src/index.jst
+
+
+  var envHasBigInt64Array = typeof BigInt64Array !== 'undefined';
+
+
+module.exports = function equal(a, b) {
+  if (a === b) return true;
+
+  if (a && b && typeof a == 'object' && typeof b == 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    var length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length != b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (!equal(a[i], b[i])) return false;
+      return true;
+    }
+
+
+    if ((a instanceof Map) && (b instanceof Map)) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0])) return false;
+      for (i of a.entries())
+        if (!equal(i[1], b.get(i[0]))) return false;
+      return true;
+    }
+
+    if ((a instanceof Set) && (b instanceof Set)) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0])) return false;
+      return true;
+    }
+
+    if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+      length = a.length;
+      if (length != b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (a[i] !== b[i]) return false;
+      return true;
+    }
+
+
+    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+
+    keys = Object.keys(a);
+    length = keys.length;
+    if (length !== Object.keys(b).length) return false;
+
+    for (i = length; i-- !== 0;)
+      if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+
+      if (!equal(a[key], b[key])) return false;
+    }
+
+    return true;
+  }
+
+  // true if both NaN, false otherwise
+  return a!==a && b!==b;
+};
+
+
+/***/ }),
+
+/***/ 8021:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+var __webpack_unused_export__;
+/*istanbul ignore start*/
+
+
+__webpack_unused_export__ = ({
+  value: true
+});
+exports.JJ = diffChars;
+__webpack_unused_export__ = void 0;
+
+/*istanbul ignore end*/
+var
+/*istanbul ignore start*/
+_base = _interopRequireDefault(__webpack_require__(5417))
+/*istanbul ignore end*/
+;
+
+/*istanbul ignore start*/ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*istanbul ignore end*/
+var characterDiff = new
+/*istanbul ignore start*/
+_base
+/*istanbul ignore end*/
+.
+/*istanbul ignore start*/
+default
+/*istanbul ignore end*/
+();
+
+/*istanbul ignore start*/
+__webpack_unused_export__ = characterDiff;
+
+/*istanbul ignore end*/
+function diffChars(oldStr, newStr, options) {
+  return characterDiff.diff(oldStr, newStr, options);
+}
+
+
+/***/ }),
+
+/***/ 8202:
+/***/ ((module) => {
+
+"use strict";
+/**
+ * Copyright (c) 2015, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ * @providesModule ExecutionEnvironment
+ */
+
+/*jslint evil: true */
+
+
+
+var canUseDOM = !!(
+  typeof window !== 'undefined' &&
+  window.document &&
+  window.document.createElement
+);
+
+/**
+ * Simple, lightweight module assisting with the detection and context of
+ * Worker. Helps avoid circular dependencies and allows code to reason about
+ * whether or not they are in a Worker, even if they never include the main
+ * `ReactWorker` dependency.
+ */
+var ExecutionEnvironment = {
+
+  canUseDOM: canUseDOM,
+
+  canUseWorkers: typeof Worker !== 'undefined',
+
+  canUseEventListeners:
+    canUseDOM && !!(window.addEventListener || window.attachEvent),
+
+  canUseViewport: canUseDOM && !!window.screen,
+
+  isInWorker: !canUseDOM // For now, this is true - might change in the future.
+
+};
+
+module.exports = ExecutionEnvironment;
+
+
+/***/ }),
+
+/***/ 8491:
+/***/ ((module) => {
+
+var openParentheses = "(".charCodeAt(0);
+var closeParentheses = ")".charCodeAt(0);
+var singleQuote = "'".charCodeAt(0);
+var doubleQuote = '"'.charCodeAt(0);
+var backslash = "\\".charCodeAt(0);
+var slash = "/".charCodeAt(0);
+var comma = ",".charCodeAt(0);
+var colon = ":".charCodeAt(0);
+var star = "*".charCodeAt(0);
+var uLower = "u".charCodeAt(0);
+var uUpper = "U".charCodeAt(0);
+var plus = "+".charCodeAt(0);
+var isUnicodeRange = /^[a-f0-9?-]+$/i;
+
+module.exports = function(input) {
+  var tokens = [];
+  var value = input;
+
+  var next,
+    quote,
+    prev,
+    token,
+    escape,
+    escapePos,
+    whitespacePos,
+    parenthesesOpenPos;
+  var pos = 0;
+  var code = value.charCodeAt(pos);
+  var max = value.length;
+  var stack = [{ nodes: tokens }];
+  var balanced = 0;
+  var parent;
+
+  var name = "";
+  var before = "";
+  var after = "";
+
+  while (pos < max) {
+    // Whitespaces
+    if (code <= 32) {
+      next = pos;
+      do {
+        next += 1;
+        code = value.charCodeAt(next);
+      } while (code <= 32);
+      token = value.slice(pos, next);
+
+      prev = tokens[tokens.length - 1];
+      if (code === closeParentheses && balanced) {
+        after = token;
+      } else if (prev && prev.type === "div") {
+        prev.after = token;
+        prev.sourceEndIndex += token.length;
+      } else if (
+        code === comma ||
+        code === colon ||
+        (code === slash &&
+          value.charCodeAt(next + 1) !== star &&
+          (!parent ||
+            (parent && parent.type === "function" && parent.value !== "calc")))
+      ) {
+        before = token;
+      } else {
+        tokens.push({
+          type: "space",
+          sourceIndex: pos,
+          sourceEndIndex: next,
+          value: token
+        });
+      }
+
+      pos = next;
+
+      // Quotes
+    } else if (code === singleQuote || code === doubleQuote) {
+      next = pos;
+      quote = code === singleQuote ? "'" : '"';
+      token = {
+        type: "string",
+        sourceIndex: pos,
+        quote: quote
+      };
+      do {
+        escape = false;
+        next = value.indexOf(quote, next + 1);
+        if (~next) {
+          escapePos = next;
+          while (value.charCodeAt(escapePos - 1) === backslash) {
+            escapePos -= 1;
+            escape = !escape;
+          }
+        } else {
+          value += quote;
+          next = value.length - 1;
+          token.unclosed = true;
+        }
+      } while (escape);
+      token.value = value.slice(pos + 1, next);
+      token.sourceEndIndex = token.unclosed ? next : next + 1;
+      tokens.push(token);
+      pos = next + 1;
+      code = value.charCodeAt(pos);
+
+      // Comments
+    } else if (code === slash && value.charCodeAt(pos + 1) === star) {
+      next = value.indexOf("*/", pos);
+
+      token = {
+        type: "comment",
+        sourceIndex: pos,
+        sourceEndIndex: next + 2
+      };
+
+      if (next === -1) {
+        token.unclosed = true;
+        next = value.length;
+        token.sourceEndIndex = next;
+      }
+
+      token.value = value.slice(pos + 2, next);
+      tokens.push(token);
+
+      pos = next + 2;
+      code = value.charCodeAt(pos);
+
+      // Operation within calc
+    } else if (
+      (code === slash || code === star) &&
+      parent &&
+      parent.type === "function" &&
+      parent.value === "calc"
+    ) {
+      token = value[pos];
+      tokens.push({
+        type: "word",
+        sourceIndex: pos - before.length,
+        sourceEndIndex: pos + token.length,
+        value: token
+      });
+      pos += 1;
+      code = value.charCodeAt(pos);
+
+      // Dividers
+    } else if (code === slash || code === comma || code === colon) {
+      token = value[pos];
+
+      tokens.push({
+        type: "div",
+        sourceIndex: pos - before.length,
+        sourceEndIndex: pos + token.length,
+        value: token,
+        before: before,
+        after: ""
+      });
+      before = "";
+
+      pos += 1;
+      code = value.charCodeAt(pos);
+
+      // Open parentheses
+    } else if (openParentheses === code) {
+      // Whitespaces after open parentheses
+      next = pos;
+      do {
+        next += 1;
+        code = value.charCodeAt(next);
+      } while (code <= 32);
+      parenthesesOpenPos = pos;
+      token = {
+        type: "function",
+        sourceIndex: pos - name.length,
+        value: name,
+        before: value.slice(parenthesesOpenPos + 1, next)
+      };
+      pos = next;
+
+      if (name === "url" && code !== singleQuote && code !== doubleQuote) {
+        next -= 1;
+        do {
+          escape = false;
+          next = value.indexOf(")", next + 1);
+          if (~next) {
+            escapePos = next;
+            while (value.charCodeAt(escapePos - 1) === backslash) {
+              escapePos -= 1;
+              escape = !escape;
+            }
+          } else {
+            value += ")";
+            next = value.length - 1;
+            token.unclosed = true;
+          }
+        } while (escape);
+        // Whitespaces before closed
+        whitespacePos = next;
+        do {
+          whitespacePos -= 1;
+          code = value.charCodeAt(whitespacePos);
+        } while (code <= 32);
+        if (parenthesesOpenPos < whitespacePos) {
+          if (pos !== whitespacePos + 1) {
+            token.nodes = [
+              {
+                type: "word",
+                sourceIndex: pos,
+                sourceEndIndex: whitespacePos + 1,
+                value: value.slice(pos, whitespacePos + 1)
+              }
+            ];
+          } else {
+            token.nodes = [];
+          }
+          if (token.unclosed && whitespacePos + 1 !== next) {
+            token.after = "";
+            token.nodes.push({
+              type: "space",
+              sourceIndex: whitespacePos + 1,
+              sourceEndIndex: next,
+              value: value.slice(whitespacePos + 1, next)
+            });
+          } else {
+            token.after = value.slice(whitespacePos + 1, next);
+            token.sourceEndIndex = next;
+          }
+        } else {
+          token.after = "";
+          token.nodes = [];
+        }
+        pos = next + 1;
+        token.sourceEndIndex = token.unclosed ? next : pos;
+        code = value.charCodeAt(pos);
+        tokens.push(token);
+      } else {
+        balanced += 1;
+        token.after = "";
+        token.sourceEndIndex = pos + 1;
+        tokens.push(token);
+        stack.push(token);
+        tokens = token.nodes = [];
+        parent = token;
+      }
+      name = "";
+
+      // Close parentheses
+    } else if (closeParentheses === code && balanced) {
+      pos += 1;
+      code = value.charCodeAt(pos);
+
+      parent.after = after;
+      parent.sourceEndIndex += after.length;
+      after = "";
+      balanced -= 1;
+      stack[stack.length - 1].sourceEndIndex = pos;
+      stack.pop();
+      parent = stack[balanced];
+      tokens = parent.nodes;
+
+      // Words
+    } else {
+      next = pos;
+      do {
+        if (code === backslash) {
+          next += 1;
+        }
+        next += 1;
+        code = value.charCodeAt(next);
+      } while (
+        next < max &&
+        !(
+          code <= 32 ||
+          code === singleQuote ||
+          code === doubleQuote ||
+          code === comma ||
+          code === colon ||
+          code === slash ||
+          code === openParentheses ||
+          (code === star &&
+            parent &&
+            parent.type === "function" &&
+            parent.value === "calc") ||
+          (code === slash &&
+            parent.type === "function" &&
+            parent.value === "calc") ||
+          (code === closeParentheses && balanced)
+        )
+      );
+      token = value.slice(pos, next);
+
+      if (openParentheses === code) {
+        name = token;
+      } else if (
+        (uLower === token.charCodeAt(0) || uUpper === token.charCodeAt(0)) &&
+        plus === token.charCodeAt(1) &&
+        isUnicodeRange.test(token.slice(2))
+      ) {
+        tokens.push({
+          type: "unicode-range",
+          sourceIndex: pos,
+          sourceEndIndex: next,
+          value: token
+        });
+      } else {
+        tokens.push({
+          type: "word",
+          sourceIndex: pos,
+          sourceEndIndex: next,
+          value: token
+        });
+      }
+
+      pos = next;
+    }
+  }
+
+  for (pos = stack.length - 1; pos; pos -= 1) {
+    stack[pos].unclosed = true;
+    stack[pos].sourceEndIndex = value.length;
+  }
+
+  return stack[0].nodes;
+};
 
 
 /***/ }),
@@ -5652,6 +6694,10 @@ Document.registerProcessor(Processor)
 let Warning = __webpack_require__(5776)
 
 class Result {
+  get content() {
+    return this.css
+  }
+
   constructor(processor, root, opts) {
     this.processor = processor
     this.messages = []
@@ -5680,10 +6726,6 @@ class Result {
 
   warnings() {
     return this.messages.filter(i => i.type === 'warning')
-  }
-
-  get content() {
-    return this.css
   }
 }
 
@@ -5762,1029 +6804,71 @@ Container.registerRoot(Root)
 
 /***/ }),
 
-/***/ 4092:
+/***/ 9656:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-let Container = __webpack_require__(683)
-let list = __webpack_require__(7374)
+let Document = __webpack_require__(271)
+let LazyResult = __webpack_require__(448)
+let NoWorkResult = __webpack_require__(7661)
+let Root = __webpack_require__(9434)
 
-class Rule extends Container {
-  constructor(defaults) {
-    super(defaults)
-    this.type = 'rule'
-    if (!this.nodes) this.nodes = []
+class Processor {
+  constructor(plugins = []) {
+    this.version = '8.5.3'
+    this.plugins = this.normalize(plugins)
   }
 
-  get selectors() {
-    return list.comma(this.selector)
-  }
-
-  set selectors(values) {
-    let match = this.selector ? this.selector.match(/,\s*/) : null
-    let sep = match ? match[0] : ',' + this.raw('between', 'beforeOpen')
-    this.selector = values.join(sep)
-  }
-}
-
-module.exports = Rule
-Rule.default = Rule
-
-Container.registerRule(Rule)
-
-
-/***/ }),
-
-/***/ 346:
-/***/ ((module) => {
-
-"use strict";
-
-
-const DEFAULT_RAW = {
-  after: '\n',
-  beforeClose: '\n',
-  beforeComment: '\n',
-  beforeDecl: '\n',
-  beforeOpen: ' ',
-  beforeRule: '\n',
-  colon: ': ',
-  commentLeft: ' ',
-  commentRight: ' ',
-  emptyBody: '',
-  indent: '    ',
-  semicolon: false
-}
-
-function capitalize(str) {
-  return str[0].toUpperCase() + str.slice(1)
-}
-
-class Stringifier {
-  constructor(builder) {
-    this.builder = builder
-  }
-
-  atrule(node, semicolon) {
-    let name = '@' + node.name
-    let params = node.params ? this.rawValue(node, 'params') : ''
-
-    if (typeof node.raws.afterName !== 'undefined') {
-      name += node.raws.afterName
-    } else if (params) {
-      name += ' '
-    }
-
-    if (node.nodes) {
-      this.block(node, name + params)
-    } else {
-      let end = (node.raws.between || '') + (semicolon ? ';' : '')
-      this.builder(name + params + end, node)
-    }
-  }
-
-  beforeAfter(node, detect) {
-    let value
-    if (node.type === 'decl') {
-      value = this.raw(node, null, 'beforeDecl')
-    } else if (node.type === 'comment') {
-      value = this.raw(node, null, 'beforeComment')
-    } else if (detect === 'before') {
-      value = this.raw(node, null, 'beforeRule')
-    } else {
-      value = this.raw(node, null, 'beforeClose')
-    }
-
-    let buf = node.parent
-    let depth = 0
-    while (buf && buf.type !== 'root') {
-      depth += 1
-      buf = buf.parent
-    }
-
-    if (value.includes('\n')) {
-      let indent = this.raw(node, null, 'indent')
-      if (indent.length) {
-        for (let step = 0; step < depth; step++) value += indent
-      }
-    }
-
-    return value
-  }
-
-  block(node, start) {
-    let between = this.raw(node, 'between', 'beforeOpen')
-    this.builder(start + between + '{', node, 'start')
-
-    let after
-    if (node.nodes && node.nodes.length) {
-      this.body(node)
-      after = this.raw(node, 'after')
-    } else {
-      after = this.raw(node, 'after', 'emptyBody')
-    }
-
-    if (after) this.builder(after)
-    this.builder('}', node, 'end')
-  }
-
-  body(node) {
-    let last = node.nodes.length - 1
-    while (last > 0) {
-      if (node.nodes[last].type !== 'comment') break
-      last -= 1
-    }
-
-    let semicolon = this.raw(node, 'semicolon')
-    for (let i = 0; i < node.nodes.length; i++) {
-      let child = node.nodes[i]
-      let before = this.raw(child, 'before')
-      if (before) this.builder(before)
-      this.stringify(child, last !== i || semicolon)
-    }
-  }
-
-  comment(node) {
-    let left = this.raw(node, 'left', 'commentLeft')
-    let right = this.raw(node, 'right', 'commentRight')
-    this.builder('/*' + left + node.text + right + '*/', node)
-  }
-
-  decl(node, semicolon) {
-    let between = this.raw(node, 'between', 'colon')
-    let string = node.prop + between + this.rawValue(node, 'value')
-
-    if (node.important) {
-      string += node.raws.important || ' !important'
-    }
-
-    if (semicolon) string += ';'
-    this.builder(string, node)
-  }
-
-  document(node) {
-    this.body(node)
-  }
-
-  raw(node, own, detect) {
-    let value
-    if (!detect) detect = own
-
-    // Already had
-    if (own) {
-      value = node.raws[own]
-      if (typeof value !== 'undefined') return value
-    }
-
-    let parent = node.parent
-
-    if (detect === 'before') {
-      // Hack for first rule in CSS
-      if (!parent || (parent.type === 'root' && parent.first === node)) {
-        return ''
+  normalize(plugins) {
+    let normalized = []
+    for (let i of plugins) {
+      if (i.postcss === true) {
+        i = i()
+      } else if (i.postcss) {
+        i = i.postcss
       }
 
-      // `root` nodes in `document` should use only their own raws
-      if (parent && parent.type === 'document') {
-        return ''
-      }
-    }
-
-    // Floating child without parent
-    if (!parent) return DEFAULT_RAW[detect]
-
-    // Detect style by other nodes
-    let root = node.root()
-    if (!root.rawCache) root.rawCache = {}
-    if (typeof root.rawCache[detect] !== 'undefined') {
-      return root.rawCache[detect]
-    }
-
-    if (detect === 'before' || detect === 'after') {
-      return this.beforeAfter(node, detect)
-    } else {
-      let method = 'raw' + capitalize(detect)
-      if (this[method]) {
-        value = this[method](root, node)
+      if (typeof i === 'object' && Array.isArray(i.plugins)) {
+        normalized = normalized.concat(i.plugins)
+      } else if (typeof i === 'object' && i.postcssPlugin) {
+        normalized.push(i)
+      } else if (typeof i === 'function') {
+        normalized.push(i)
+      } else if (typeof i === 'object' && (i.parse || i.stringify)) {
+        if (false) {}
       } else {
-        root.walk(i => {
-          value = i.raws[own]
-          if (typeof value !== 'undefined') return false
-        })
+        throw new Error(i + ' is not a PostCSS plugin')
       }
     }
-
-    if (typeof value === 'undefined') value = DEFAULT_RAW[detect]
-
-    root.rawCache[detect] = value
-    return value
+    return normalized
   }
 
-  rawBeforeClose(root) {
-    let value
-    root.walk(i => {
-      if (i.nodes && i.nodes.length > 0) {
-        if (typeof i.raws.after !== 'undefined') {
-          value = i.raws.after
-          if (value.includes('\n')) {
-            value = value.replace(/[^\n]+$/, '')
-          }
-          return false
-        }
-      }
-    })
-    if (value) value = value.replace(/\S/g, '')
-    return value
-  }
-
-  rawBeforeComment(root, node) {
-    let value
-    root.walkComments(i => {
-      if (typeof i.raws.before !== 'undefined') {
-        value = i.raws.before
-        if (value.includes('\n')) {
-          value = value.replace(/[^\n]+$/, '')
-        }
-        return false
-      }
-    })
-    if (typeof value === 'undefined') {
-      value = this.raw(node, null, 'beforeDecl')
-    } else if (value) {
-      value = value.replace(/\S/g, '')
-    }
-    return value
-  }
-
-  rawBeforeDecl(root, node) {
-    let value
-    root.walkDecls(i => {
-      if (typeof i.raws.before !== 'undefined') {
-        value = i.raws.before
-        if (value.includes('\n')) {
-          value = value.replace(/[^\n]+$/, '')
-        }
-        return false
-      }
-    })
-    if (typeof value === 'undefined') {
-      value = this.raw(node, null, 'beforeRule')
-    } else if (value) {
-      value = value.replace(/\S/g, '')
-    }
-    return value
-  }
-
-  rawBeforeOpen(root) {
-    let value
-    root.walk(i => {
-      if (i.type !== 'decl') {
-        value = i.raws.between
-        if (typeof value !== 'undefined') return false
-      }
-    })
-    return value
-  }
-
-  rawBeforeRule(root) {
-    let value
-    root.walk(i => {
-      if (i.nodes && (i.parent !== root || root.first !== i)) {
-        if (typeof i.raws.before !== 'undefined') {
-          value = i.raws.before
-          if (value.includes('\n')) {
-            value = value.replace(/[^\n]+$/, '')
-          }
-          return false
-        }
-      }
-    })
-    if (value) value = value.replace(/\S/g, '')
-    return value
-  }
-
-  rawColon(root) {
-    let value
-    root.walkDecls(i => {
-      if (typeof i.raws.between !== 'undefined') {
-        value = i.raws.between.replace(/[^\s:]/g, '')
-        return false
-      }
-    })
-    return value
-  }
-
-  rawEmptyBody(root) {
-    let value
-    root.walk(i => {
-      if (i.nodes && i.nodes.length === 0) {
-        value = i.raws.after
-        if (typeof value !== 'undefined') return false
-      }
-    })
-    return value
-  }
-
-  rawIndent(root) {
-    if (root.raws.indent) return root.raws.indent
-    let value
-    root.walk(i => {
-      let p = i.parent
-      if (p && p !== root && p.parent && p.parent === root) {
-        if (typeof i.raws.before !== 'undefined') {
-          let parts = i.raws.before.split('\n')
-          value = parts[parts.length - 1]
-          value = value.replace(/\S/g, '')
-          return false
-        }
-      }
-    })
-    return value
-  }
-
-  rawSemicolon(root) {
-    let value
-    root.walk(i => {
-      if (i.nodes && i.nodes.length && i.last.type === 'decl') {
-        value = i.raws.semicolon
-        if (typeof value !== 'undefined') return false
-      }
-    })
-    return value
-  }
-
-  rawValue(node, prop) {
-    let value = node[prop]
-    let raw = node.raws[prop]
-    if (raw && raw.value === value) {
-      return raw.raw
-    }
-
-    return value
-  }
-
-  root(node) {
-    this.body(node)
-    if (node.raws.after) this.builder(node.raws.after)
-  }
-
-  rule(node) {
-    this.block(node, this.rawValue(node, 'selector'))
-    if (node.raws.ownSemicolon) {
-      this.builder(node.raws.ownSemicolon, node, 'end')
+  process(css, opts = {}) {
+    if (
+      !this.plugins.length &&
+      !opts.parser &&
+      !opts.stringifier &&
+      !opts.syntax
+    ) {
+      return new NoWorkResult(this, css, opts)
+    } else {
+      return new LazyResult(this, css, opts)
     }
   }
 
-  stringify(node, semicolon) {
-    /* c8 ignore start */
-    if (!this[node.type]) {
-      throw new Error(
-        'Unknown AST node type ' +
-          node.type +
-          '. ' +
-          'Maybe you need to change PostCSS stringifier.'
-      )
-    }
-    /* c8 ignore stop */
-    this[node.type](node, semicolon)
+  use(plugin) {
+    this.plugins = this.plugins.concat(this.normalize([plugin]))
+    return this
   }
 }
 
-module.exports = Stringifier
-Stringifier.default = Stringifier
-
-
-/***/ }),
-
-/***/ 633:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-let Stringifier = __webpack_require__(346)
-
-function stringify(node, builder) {
-  let str = new Stringifier(builder)
-  str.stringify(node)
-}
-
-module.exports = stringify
-stringify.default = stringify
-
-
-/***/ }),
-
-/***/ 1381:
-/***/ ((module) => {
-
-"use strict";
-
-
-module.exports.isClean = Symbol('isClean')
-
-module.exports.my = Symbol('my')
-
-
-/***/ }),
-
-/***/ 2327:
-/***/ ((module) => {
-
-"use strict";
-
-
-const SINGLE_QUOTE = "'".charCodeAt(0)
-const DOUBLE_QUOTE = '"'.charCodeAt(0)
-const BACKSLASH = '\\'.charCodeAt(0)
-const SLASH = '/'.charCodeAt(0)
-const NEWLINE = '\n'.charCodeAt(0)
-const SPACE = ' '.charCodeAt(0)
-const FEED = '\f'.charCodeAt(0)
-const TAB = '\t'.charCodeAt(0)
-const CR = '\r'.charCodeAt(0)
-const OPEN_SQUARE = '['.charCodeAt(0)
-const CLOSE_SQUARE = ']'.charCodeAt(0)
-const OPEN_PARENTHESES = '('.charCodeAt(0)
-const CLOSE_PARENTHESES = ')'.charCodeAt(0)
-const OPEN_CURLY = '{'.charCodeAt(0)
-const CLOSE_CURLY = '}'.charCodeAt(0)
-const SEMICOLON = ';'.charCodeAt(0)
-const ASTERISK = '*'.charCodeAt(0)
-const COLON = ':'.charCodeAt(0)
-const AT = '@'.charCodeAt(0)
-
-const RE_AT_END = /[\t\n\f\r "#'()/;[\\\]{}]/g
-const RE_WORD_END = /[\t\n\f\r !"#'():;@[\\\]{}]|\/(?=\*)/g
-const RE_BAD_BRACKET = /.[\r\n"'(/\\]/
-const RE_HEX_ESCAPE = /[\da-f]/i
-
-module.exports = function tokenizer(input, options = {}) {
-  let css = input.css.valueOf()
-  let ignore = options.ignoreErrors
-
-  let code, content, escape, next, quote
-  let currentToken, escaped, escapePos, n, prev
-
-  let length = css.length
-  let pos = 0
-  let buffer = []
-  let returned = []
-
-  function position() {
-    return pos
-  }
-
-  function unclosed(what) {
-    throw input.error('Unclosed ' + what, pos)
-  }
-
-  function endOfFile() {
-    return returned.length === 0 && pos >= length
-  }
-
-  function nextToken(opts) {
-    if (returned.length) return returned.pop()
-    if (pos >= length) return
-
-    let ignoreUnclosed = opts ? opts.ignoreUnclosed : false
-
-    code = css.charCodeAt(pos)
-
-    switch (code) {
-      case NEWLINE:
-      case SPACE:
-      case TAB:
-      case CR:
-      case FEED: {
-        next = pos
-        do {
-          next += 1
-          code = css.charCodeAt(next)
-        } while (
-          code === SPACE ||
-          code === NEWLINE ||
-          code === TAB ||
-          code === CR ||
-          code === FEED
-        )
-
-        currentToken = ['space', css.slice(pos, next)]
-        pos = next - 1
-        break
-      }
-
-      case OPEN_SQUARE:
-      case CLOSE_SQUARE:
-      case OPEN_CURLY:
-      case CLOSE_CURLY:
-      case COLON:
-      case SEMICOLON:
-      case CLOSE_PARENTHESES: {
-        let controlChar = String.fromCharCode(code)
-        currentToken = [controlChar, controlChar, pos]
-        break
-      }
-
-      case OPEN_PARENTHESES: {
-        prev = buffer.length ? buffer.pop()[1] : ''
-        n = css.charCodeAt(pos + 1)
-        if (
-          prev === 'url' &&
-          n !== SINGLE_QUOTE &&
-          n !== DOUBLE_QUOTE &&
-          n !== SPACE &&
-          n !== NEWLINE &&
-          n !== TAB &&
-          n !== FEED &&
-          n !== CR
-        ) {
-          next = pos
-          do {
-            escaped = false
-            next = css.indexOf(')', next + 1)
-            if (next === -1) {
-              if (ignore || ignoreUnclosed) {
-                next = pos
-                break
-              } else {
-                unclosed('bracket')
-              }
-            }
-            escapePos = next
-            while (css.charCodeAt(escapePos - 1) === BACKSLASH) {
-              escapePos -= 1
-              escaped = !escaped
-            }
-          } while (escaped)
-
-          currentToken = ['brackets', css.slice(pos, next + 1), pos, next]
-
-          pos = next
-        } else {
-          next = css.indexOf(')', pos + 1)
-          content = css.slice(pos, next + 1)
-
-          if (next === -1 || RE_BAD_BRACKET.test(content)) {
-            currentToken = ['(', '(', pos]
-          } else {
-            currentToken = ['brackets', content, pos, next]
-            pos = next
-          }
-        }
-
-        break
-      }
-
-      case SINGLE_QUOTE:
-      case DOUBLE_QUOTE: {
-        quote = code === SINGLE_QUOTE ? "'" : '"'
-        next = pos
-        do {
-          escaped = false
-          next = css.indexOf(quote, next + 1)
-          if (next === -1) {
-            if (ignore || ignoreUnclosed) {
-              next = pos + 1
-              break
-            } else {
-              unclosed('string')
-            }
-          }
-          escapePos = next
-          while (css.charCodeAt(escapePos - 1) === BACKSLASH) {
-            escapePos -= 1
-            escaped = !escaped
-          }
-        } while (escaped)
-
-        currentToken = ['string', css.slice(pos, next + 1), pos, next]
-        pos = next
-        break
-      }
-
-      case AT: {
-        RE_AT_END.lastIndex = pos + 1
-        RE_AT_END.test(css)
-        if (RE_AT_END.lastIndex === 0) {
-          next = css.length - 1
-        } else {
-          next = RE_AT_END.lastIndex - 2
-        }
-
-        currentToken = ['at-word', css.slice(pos, next + 1), pos, next]
-
-        pos = next
-        break
-      }
-
-      case BACKSLASH: {
-        next = pos
-        escape = true
-        while (css.charCodeAt(next + 1) === BACKSLASH) {
-          next += 1
-          escape = !escape
-        }
-        code = css.charCodeAt(next + 1)
-        if (
-          escape &&
-          code !== SLASH &&
-          code !== SPACE &&
-          code !== NEWLINE &&
-          code !== TAB &&
-          code !== CR &&
-          code !== FEED
-        ) {
-          next += 1
-          if (RE_HEX_ESCAPE.test(css.charAt(next))) {
-            while (RE_HEX_ESCAPE.test(css.charAt(next + 1))) {
-              next += 1
-            }
-            if (css.charCodeAt(next + 1) === SPACE) {
-              next += 1
-            }
-          }
-        }
-
-        currentToken = ['word', css.slice(pos, next + 1), pos, next]
-
-        pos = next
-        break
-      }
-
-      default: {
-        if (code === SLASH && css.charCodeAt(pos + 1) === ASTERISK) {
-          next = css.indexOf('*/', pos + 2) + 1
-          if (next === 0) {
-            if (ignore || ignoreUnclosed) {
-              next = css.length
-            } else {
-              unclosed('comment')
-            }
-          }
-
-          currentToken = ['comment', css.slice(pos, next + 1), pos, next]
-          pos = next
-        } else {
-          RE_WORD_END.lastIndex = pos + 1
-          RE_WORD_END.test(css)
-          if (RE_WORD_END.lastIndex === 0) {
-            next = css.length - 1
-          } else {
-            next = RE_WORD_END.lastIndex - 2
-          }
-
-          currentToken = ['word', css.slice(pos, next + 1), pos, next]
-          buffer.push(currentToken)
-          pos = next
-        }
-
-        break
-      }
-    }
-
-    pos++
-    return currentToken
-  }
-
-  function back(token) {
-    returned.push(token)
-  }
-
-  return {
-    back,
-    endOfFile,
-    nextToken,
-    position
-  }
-}
-
-
-/***/ }),
-
-/***/ 3122:
-/***/ ((module) => {
-
-"use strict";
-/* eslint-disable no-console */
-
-
-let printed = {}
-
-module.exports = function warnOnce(message) {
-  if (printed[message]) return
-  printed[message] = true
-
-  if (typeof console !== 'undefined' && console.warn) {
-    console.warn(message)
-  }
-}
-
-
-/***/ }),
-
-/***/ 5776:
-/***/ ((module) => {
-
-"use strict";
-
-
-class Warning {
-  constructor(text, opts = {}) {
-    this.type = 'warning'
-    this.text = text
-
-    if (opts.node && opts.node.source) {
-      let range = opts.node.rangeBy(opts)
-      this.line = range.start.line
-      this.column = range.start.column
-      this.endLine = range.end.line
-      this.endColumn = range.end.column
-    }
-
-    for (let opt in opts) this[opt] = opts[opt]
-  }
-
-  toString() {
-    if (this.node) {
-      return this.node.error(this.text, {
-        index: this.index,
-        plugin: this.plugin,
-        word: this.word
-      }).message
-    }
-
-    if (this.plugin) {
-      return this.plugin + ': ' + this.text
-    }
-
-    return this.text
-  }
-}
-
-module.exports = Warning
-Warning.default = Warning
-
-
-/***/ }),
-
-/***/ 628:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-
-
-var ReactPropTypesSecret = __webpack_require__(4067);
-
-function emptyFunction() {}
-function emptyFunctionWithReset() {}
-emptyFunctionWithReset.resetWarningCache = emptyFunction;
-
-module.exports = function() {
-  function shim(props, propName, componentName, location, propFullName, secret) {
-    if (secret === ReactPropTypesSecret) {
-      // It is still safe when called from React.
-      return;
-    }
-    var err = new Error(
-      'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
-      'Use PropTypes.checkPropTypes() to call them. ' +
-      'Read more at http://fb.me/use-check-prop-types'
-    );
-    err.name = 'Invariant Violation';
-    throw err;
-  };
-  shim.isRequired = shim;
-  function getShim() {
-    return shim;
-  };
-  // Important!
-  // Keep this list in sync with production version in `./factoryWithTypeCheckers.js`.
-  var ReactPropTypes = {
-    array: shim,
-    bigint: shim,
-    bool: shim,
-    func: shim,
-    number: shim,
-    object: shim,
-    string: shim,
-    symbol: shim,
-
-    any: shim,
-    arrayOf: getShim,
-    element: shim,
-    elementType: shim,
-    instanceOf: getShim,
-    node: shim,
-    objectOf: getShim,
-    oneOf: getShim,
-    oneOfType: getShim,
-    shape: getShim,
-    exact: getShim,
-
-    checkPropTypes: emptyFunctionWithReset,
-    resetWarningCache: emptyFunction
-  };
-
-  ReactPropTypes.PropTypes = ReactPropTypes;
-
-  return ReactPropTypes;
-};
-
-
-/***/ }),
-
-/***/ 5826:
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-if (false) { var throwOnDirectAccess, ReactIs; } else {
-  // By explicitly using `prop-types` you are opting into new production behavior.
-  // http://fb.me/prop-types-in-prod
-  module.exports = __webpack_require__(628)();
-}
-
-
-/***/ }),
-
-/***/ 4067:
-/***/ ((module) => {
-
-"use strict";
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-
-
-var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
-
-module.exports = ReactPropTypesSecret;
-
-
-/***/ }),
-
-/***/ 4462:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0)
-            t[p[i]] = s[p[i]];
-    return t;
-};
-exports.__esModule = true;
-var React = __webpack_require__(1609);
-var PropTypes = __webpack_require__(5826);
-var autosize = __webpack_require__(4306);
-var _getLineHeight = __webpack_require__(461);
-var getLineHeight = _getLineHeight;
-var RESIZED = "autosize:resized";
-/**
- * A light replacement for built-in textarea component
- * which automaticaly adjusts its height to match the content
- */
-var TextareaAutosizeClass = /** @class */ (function (_super) {
-    __extends(TextareaAutosizeClass, _super);
-    function TextareaAutosizeClass() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.state = {
-            lineHeight: null
-        };
-        _this.textarea = null;
-        _this.onResize = function (e) {
-            if (_this.props.onResize) {
-                _this.props.onResize(e);
-            }
-        };
-        _this.updateLineHeight = function () {
-            if (_this.textarea) {
-                _this.setState({
-                    lineHeight: getLineHeight(_this.textarea)
-                });
-            }
-        };
-        _this.onChange = function (e) {
-            var onChange = _this.props.onChange;
-            _this.currentValue = e.currentTarget.value;
-            onChange && onChange(e);
-        };
-        return _this;
-    }
-    TextareaAutosizeClass.prototype.componentDidMount = function () {
-        var _this = this;
-        var _a = this.props, maxRows = _a.maxRows, async = _a.async;
-        if (typeof maxRows === "number") {
-            this.updateLineHeight();
-        }
-        if (typeof maxRows === "number" || async) {
-            /*
-              the defer is needed to:
-                - force "autosize" to activate the scrollbar when this.props.maxRows is passed
-                - support StyledComponents (see #71)
-            */
-            setTimeout(function () { return _this.textarea && autosize(_this.textarea); });
-        }
-        else {
-            this.textarea && autosize(this.textarea);
-        }
-        if (this.textarea) {
-            this.textarea.addEventListener(RESIZED, this.onResize);
-        }
-    };
-    TextareaAutosizeClass.prototype.componentWillUnmount = function () {
-        if (this.textarea) {
-            this.textarea.removeEventListener(RESIZED, this.onResize);
-            autosize.destroy(this.textarea);
-        }
-    };
-    TextareaAutosizeClass.prototype.render = function () {
-        var _this = this;
-        var _a = this, _b = _a.props, onResize = _b.onResize, maxRows = _b.maxRows, onChange = _b.onChange, style = _b.style, innerRef = _b.innerRef, children = _b.children, props = __rest(_b, ["onResize", "maxRows", "onChange", "style", "innerRef", "children"]), lineHeight = _a.state.lineHeight;
-        var maxHeight = maxRows && lineHeight ? lineHeight * maxRows : null;
-        return (React.createElement("textarea", __assign({}, props, { onChange: this.onChange, style: maxHeight ? __assign({}, style, { maxHeight: maxHeight }) : style, ref: function (element) {
-                _this.textarea = element;
-                if (typeof _this.props.innerRef === 'function') {
-                    _this.props.innerRef(element);
-                }
-                else if (_this.props.innerRef) {
-                    _this.props.innerRef.current = element;
-                }
-            } }), children));
-    };
-    TextareaAutosizeClass.prototype.componentDidUpdate = function () {
-        this.textarea && autosize.update(this.textarea);
-    };
-    TextareaAutosizeClass.defaultProps = {
-        rows: 1,
-        async: false
-    };
-    TextareaAutosizeClass.propTypes = {
-        rows: PropTypes.number,
-        maxRows: PropTypes.number,
-        onResize: PropTypes.func,
-        innerRef: PropTypes.any,
-        async: PropTypes.bool
-    };
-    return TextareaAutosizeClass;
-}(React.Component));
-exports.TextareaAutosize = React.forwardRef(function (props, ref) {
-    return React.createElement(TextareaAutosizeClass, __assign({}, props, { innerRef: ref }));
-});
-
-
-/***/ }),
-
-/***/ 4132:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-var __webpack_unused_export__;
-
-__webpack_unused_export__ = true;
-var TextareaAutosize_1 = __webpack_require__(4462);
-exports.A = TextareaAutosize_1.TextareaAutosize;
+module.exports = Processor
+Processor.default = Processor
+
+Root.registerProcessor(Processor)
+Document.registerProcessor(Processor)
 
 
 /***/ }),
@@ -7277,14 +7361,6 @@ module.exports.remove = removeAccents;
 
 /***/ }),
 
-/***/ 1609:
-/***/ ((module) => {
-
-"use strict";
-module.exports = window["React"];
-
-/***/ }),
-
 /***/ 9746:
 /***/ (() => {
 
@@ -7296,68 +7372,6 @@ module.exports = window["React"];
 /***/ (() => {
 
 /* (ignored) */
-
-/***/ }),
-
-/***/ 197:
-/***/ (() => {
-
-/* (ignored) */
-
-/***/ }),
-
-/***/ 1866:
-/***/ (() => {
-
-/* (ignored) */
-
-/***/ }),
-
-/***/ 2739:
-/***/ (() => {
-
-/* (ignored) */
-
-/***/ }),
-
-/***/ 5042:
-/***/ ((module) => {
-
-// This alphabet uses `A-Za-z0-9_-` symbols.
-// The order of characters is optimized for better gzip and brotli compression.
-// References to the same file (works both for gzip and brotli):
-// `'use`, `andom`, and `rict'`
-// References to the brotli default dictionary:
-// `-26T`, `1983`, `40px`, `75px`, `bush`, `jack`, `mind`, `very`, and `wolf`
-let urlAlphabet =
-  'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
-
-let customAlphabet = (alphabet, defaultSize = 21) => {
-  return (size = defaultSize) => {
-    let id = ''
-    // A compact alternative for `for (var i = 0; i < step; i++)`.
-    let i = size | 0
-    while (i--) {
-      // `| 0` is more compact and faster than `Math.floor()`.
-      id += alphabet[(Math.random() * alphabet.length) | 0]
-    }
-    return id
-  }
-}
-
-let nanoid = (size = 21) => {
-  let id = ''
-  // A compact alternative for `for (var i = 0; i < step; i++)`.
-  let i = size | 0
-  while (i--) {
-    // `| 0` is more compact and faster than `Math.floor()`.
-    id += urlAlphabet[(Math.random() * 64) | 0]
-  }
-  return id
-}
-
-module.exports = { nanoid, customAlphabet }
-
 
 /***/ })
 
@@ -8287,7 +8301,6 @@ const {
 } = (0,external_wp_privateApis_namespaceObject.__dangerousOptInToUnstableAPIsOnlyForCoreModules)('I acknowledge private features are not for use in themes or plugins and doing so will break in the next version of WordPress.', '@wordpress/block-editor');
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/reducer.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -10875,7 +10888,6 @@ function isPatternFiltered(pattern, sourceFilter, syncFilter) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/object.js
-/* wp:polyfill */
 /**
  * Immutably sets a value inside an object. Like `lodash#set`, but returning a
  * new object. Treats nullish initial values as empty objects. Clones any
@@ -10947,7 +10959,6 @@ function uniqByProperty(array, property) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/get-block-settings.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -11088,7 +11099,6 @@ function getBlockSettings(state, clientId, ...paths) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/private-selectors.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -11611,7 +11621,6 @@ function getInsertionPoint(state) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -11758,7 +11767,6 @@ function orderBy(items, field, order = 'asc') {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/selectors.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -14420,7 +14428,6 @@ function __unstableGetTemporarilyEditingFocusModeToRevert(state) {
 ;// external ["wp","a11y"]
 const external_wp_a11y_namespaceObject = window["wp"]["a11y"];
 ;// ./node_modules/@wordpress/block-editor/build-module/store/private-actions.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -14890,7 +14897,6 @@ function resetZoomLevel() {
 ;// external ["wp","notices"]
 const external_wp_notices_namespaceObject = window["wp"]["notices"];
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/selection.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -14930,7 +14936,6 @@ function findRichTextAttributeKey(blockType) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/store/actions.js
-/* wp:polyfill */
 /* eslint no-console: [ 'error', { allow: [ 'error', 'warn' ] } ] */
 /**
  * WordPress dependencies
@@ -17225,7 +17230,6 @@ function formatFontWeight(fontWeight) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/get-font-styles-and-weights.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -17387,7 +17391,6 @@ function getFontStylesAndWeights(fontFamilyFaces) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/typography-utils.js
-/* wp:polyfill */
 /**
  * The fluid utilities must match the backend equivalent.
  * See: gutenberg_get_typography_font_size_value() in lib/block-supports/typography.php
@@ -17619,7 +17622,6 @@ function findNearestStyleAndWeight(fontFamilyFaces, fontStyle, fontWeight) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/utils.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -18422,7 +18424,6 @@ function useGradientsPerOrigin(settings) {
 ;// ./node_modules/clsx/dist/clsx.mjs
 function r(e){var t,f,n="";if("string"==typeof e||"number"==typeof e)n+=e;else if("object"==typeof e)if(Array.isArray(e)){var o=e.length;for(t=0;t<o;t++)e[t]&&(f=r(e[t]))&&(n&&(n+=" "),n+=f)}else for(f in e)e[f]&&(n&&(n+=" "),n+=f);return n}function clsx(){for(var e,t,f=0,n="",o=arguments.length;f<o;f++)(e=arguments[f])&&(t=r(e))&&(n&&(n+=" "),n+=t);return n}/* harmony default export */ const dist_clsx = (clsx);
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -18923,7 +18924,6 @@ function useBlockControlsFill(group, shareWithChildBlocks) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-controls/fill.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -19306,7 +19306,6 @@ const LAYOUT_DEFINITIONS = {
 };
 
 ;// ./node_modules/@wordpress/block-editor/build-module/layouts/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -19525,7 +19524,6 @@ const sidesLeft = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)
 /* harmony default export */ const sides_left = (sidesLeft);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -19891,7 +19889,6 @@ const justifySpaceBetweenVertical = /*#__PURE__*/(0,external_ReactJSXRuntime_nam
 /* harmony default export */ const justify_space_between_vertical = (justifySpaceBetweenVertical);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-vertical-alignment-control/ui.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -19984,7 +19981,6 @@ const BlockVerticalAlignmentToolbar = props => {
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/justify-content-control/ui.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -20088,7 +20084,6 @@ const JustifyToolbar = props => {
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/layouts/flex.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -20419,7 +20414,6 @@ function OrientationControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/layouts/flow.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -20580,7 +20574,6 @@ const stretchWide = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx
 /* harmony default export */ const stretch_wide = (stretchWide);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/layouts/constrained.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -21240,7 +21233,6 @@ function GridLayoutTypeControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/layouts/index.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -21326,7 +21318,6 @@ function LayoutStyle({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-alignment-control/use-available-alignments.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -21494,7 +21485,6 @@ const constants_BLOCK_ALIGNMENTS_CONTROLS = {
 const constants_DEFAULT_CONTROL = 'none';
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-alignment-control/ui.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -21690,7 +21680,6 @@ function useBlockEditingMode(mode) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/align.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -21912,7 +21901,6 @@ const groups_groups = {
 /* harmony default export */ const inspector_controls_groups = (groups_groups);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inspector-controls/fill.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -22007,7 +21995,6 @@ function ToolsPanelInspectorControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inspector-controls/block-support-tools-panel.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -22315,6 +22302,7 @@ var external_wp_isShallowEqual_default = /*#__PURE__*/__webpack_require__.n(exte
 
 const keyboardReturn = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.SVG, {
   xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
   children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.Path, {
     d: "m6.734 16.106 2.176-2.38-1.093-1.028-3.846 4.158 3.846 4.158 1.093-1.028-2.176-2.38h2.811c1.125 0 2.25.03 3.374 0 1.428-.001 3.362-.25 4.963-1.277 1.66-1.065 2.868-2.906 2.868-5.859 0-2.479-1.327-4.896-3.65-5.93-1.82-.813-3.044-.8-4.806-.788l-.567.002v1.5c.184 0 .368 0 .553-.002 1.82-.007 2.704-.014 4.21.657 1.854.827 2.76 2.657 2.76 4.561 0 2.472-.973 3.824-2.178 4.596-1.258.807-2.864 1.04-4.163 1.04h-.02c-1.115.03-2.229 0-3.344 0H6.734Z"
   })
@@ -22414,7 +22402,6 @@ function LinkSettingsDrawer({
 // EXTERNAL MODULE: external "React"
 var external_React_ = __webpack_require__(1609);
 ;// ./node_modules/@wordpress/block-editor/build-module/components/url-input/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -23233,7 +23220,6 @@ const DEFAULT_LINK_SETTINGS = [{
 }];
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/link-control/search-results.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -23383,7 +23369,6 @@ function hasPossibleTLD(url, maxLength = 6) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/link-control/use-search-handler.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -23591,17 +23576,16 @@ const LinkControlSearchInput = (0,external_wp_element_namespaceObject.forwardRef
       }, suggestion);
     }
   };
-  const inputLabel = placeholder !== null && placeholder !== void 0 ? placeholder : (0,external_wp_i18n_namespaceObject.__)('Search or type URL');
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)("div", {
     className: "block-editor-link-control__search-input-container",
     children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(url_input, {
       disableSuggestions: currentLink?.url === value,
-      label: inputLabel,
+      label: (0,external_wp_i18n_namespaceObject.__)('Link'),
       hideLabelFromVision: hideLabelFromVision,
       className: className,
       value: value,
       onChange: onInputChange,
-      placeholder: inputLabel,
+      placeholder: placeholder !== null && placeholder !== void 0 ? placeholder : (0,external_wp_i18n_namespaceObject.__)('Search or type URL'),
       __experimentalRenderSuggestions: showSuggestions ? handleRenderSuggestions : null,
       __experimentalFetchLinkSuggestions: searchHandler,
       __experimentalHandleURLSuggestions: true,
@@ -23961,7 +23945,6 @@ function LinkPreview({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/link-control/settings.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -24079,7 +24062,6 @@ const makeCancelable = promise => {
 var fast_deep_equal = __webpack_require__(5215);
 var fast_deep_equal_default = /*#__PURE__*/__webpack_require__.n(fast_deep_equal);
 ;// ./node_modules/@wordpress/block-editor/build-module/components/link-control/use-internal-value.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -24130,7 +24112,6 @@ function useInternalValue(value) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/link-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -24543,10 +24524,12 @@ const DeprecatedExperimentalLinkControl = props => {
     ...props
   });
 };
+DeprecatedExperimentalLinkControl.ViewerFill = LinkControl.ViewerFill;
+DeprecatedExperimentalLinkControl.DEFAULT_LINK_SETTINGS = LinkControl.DEFAULT_LINK_SETTINGS;
+
 /* harmony default export */ const link_control = (LinkControl);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/media-replace-flow/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -24772,7 +24755,6 @@ const MediaReplaceFlow = ({
 }), (0,external_wp_components_namespaceObject.withFilters)('editor.MediaReplaceFlow')])(MediaReplaceFlow));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/background-image-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -25030,17 +25012,14 @@ function BackgroundImageControls({
 
   // Drag and drop callback, restricting image to one.
   const onFilesDrop = filesList => {
-    if (filesList?.length > 1) {
-      onUploadError((0,external_wp_i18n_namespaceObject.__)('Only one image can be used as a background image.'));
-      return;
-    }
     getSettings().mediaUpload({
       allowedTypes: [IMAGE_BACKGROUND_TYPE],
       filesList,
       onFileChange([image]) {
         onSelectMedia(image);
       },
-      onError: onUploadError
+      onError: onUploadError,
+      multiple: false
     });
   };
   const hasValue = hasBackgroundImageValue(style);
@@ -25771,12 +25750,6 @@ function addSaveProps(extraProps, blockType, attributes) {
  */
 
 
-const ARIA_LABEL_SCHEMA = {
-  type: 'string',
-  source: 'attribute',
-  attribute: 'aria-label',
-  selector: '*'
-};
 
 /**
  * Filters registered block settings, extending attributes with ariaLabel using aria-label
@@ -25795,7 +25768,9 @@ function aria_label_addAttribute(settings) {
     // Gracefully handle if settings.attributes is undefined.
     settings.attributes = {
       ...settings.attributes,
-      ariaLabel: ARIA_LABEL_SCHEMA
+      ariaLabel: {
+        type: 'string'
+      }
     };
   }
   return settings;
@@ -26002,7 +25977,6 @@ var colord_r={grad:.9,turn:360,rad:360/(2*Math.PI)},t=function(r){return"string"
 var a11y_o=function(o){var t=o/255;return t<.04045?t/12.92:Math.pow((t+.055)/1.055,2.4)},a11y_t=function(t){return.2126*a11y_o(t.r)+.7152*a11y_o(t.g)+.0722*a11y_o(t.b)};/* harmony default export */ function a11y(o){o.prototype.luminance=function(){return o=a11y_t(this.rgba),void 0===(r=2)&&(r=0),void 0===n&&(n=Math.pow(10,r)),Math.round(n*o)/n+0;var o,r,n},o.prototype.contrast=function(r){void 0===r&&(r="#FFF");var n,a,i,e,v,u,d,c=r instanceof o?r:new o(r);return e=this.rgba,v=c.toRgb(),u=a11y_t(e),d=a11y_t(v),n=u>d?(u+.05)/(d+.05):(d+.05)/(u+.05),void 0===(a=2)&&(a=0),void 0===i&&(i=Math.pow(10,a)),Math.floor(i*n)/i+0},o.prototype.isReadable=function(o,t){return void 0===o&&(o="#FFF"),void 0===t&&(t={}),this.contrast(o)>=(e=void 0===(i=(r=t).size)?"normal":i,"AAA"===(a=void 0===(n=r.level)?"AA":n)&&"normal"===e?7:"AA"===a&&"large"===e?3:4.5);var r,n,a,i,e}}
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/colors/utils.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -26175,7 +26149,6 @@ function useMultipleOriginColorsAndGradients() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/border-radius-control/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -26340,7 +26313,6 @@ function AllInputControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/border-radius-control/input-controls.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -26455,7 +26427,6 @@ function LinkedButton({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/border-radius-control/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -26597,8 +26568,22 @@ const shadow = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(ext
 });
 /* harmony default export */ const library_shadow = (shadow);
 
+;// ./node_modules/@wordpress/icons/build-module/library/reset.js
+/**
+ * WordPress dependencies
+ */
+
+
+const reset_reset = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.SVG, {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
+  children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.Path, {
+    d: "M7 11.5h10V13H7z"
+  })
+});
+/* harmony default export */ const library_reset = (reset_reset);
+
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/shadow-panel-components.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -26643,6 +26628,8 @@ function ShadowPopoverContainer({
           __next40pxDefaultSize: true,
           variant: "tertiary",
           onClick: () => onShadowChange(undefined),
+          disabled: !shadow,
+          accessibleWhenDisabled: true,
           children: (0,external_wp_i18n_namespaceObject.__)('Clear')
         })
       })]
@@ -26716,7 +26703,7 @@ function ShadowPopover({
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Dropdown, {
     popoverProps: popoverProps,
     className: "block-editor-global-styles__shadow-dropdown",
-    renderToggle: renderShadowToggle(),
+    renderToggle: renderShadowToggle(shadow, onShadowChange),
     renderContent: () => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalDropdownContentWrapper, {
       paddingSize: "medium",
       children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(ShadowPopoverContainer, {
@@ -26727,31 +26714,54 @@ function ShadowPopover({
     })
   });
 }
-function renderShadowToggle() {
+function renderShadowToggle(shadow, onShadowChange) {
   return ({
     onToggle,
     isOpen
   }) => {
+    const shadowButtonRef = (0,external_wp_element_namespaceObject.useRef)(undefined);
     const toggleProps = {
       onClick: onToggle,
       className: dist_clsx({
         'is-open': isOpen
       }),
-      'aria-expanded': isOpen
+      'aria-expanded': isOpen,
+      ref: shadowButtonRef
     };
-    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
-      __next40pxDefaultSize: true,
-      ...toggleProps,
-      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.__experimentalHStack, {
-        justify: "flex-start",
-        children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(build_module_icon, {
-          className: "block-editor-global-styles__toggle-icon",
-          icon: library_shadow,
-          size: 24
-        }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.FlexItem, {
-          children: (0,external_wp_i18n_namespaceObject.__)('Drop shadow')
-        })]
-      })
+    const removeButtonProps = {
+      onClick: () => {
+        if (isOpen) {
+          onToggle();
+        }
+        onShadowChange(undefined);
+        // Return focus to parent button.
+        shadowButtonRef.current?.focus();
+      },
+      className: dist_clsx('block-editor-global-styles__shadow-editor__remove-button', {
+        'is-open': isOpen
+      }),
+      label: (0,external_wp_i18n_namespaceObject.__)('Remove')
+    };
+    return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_ReactJSXRuntime_namespaceObject.Fragment, {
+      children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
+        __next40pxDefaultSize: true,
+        ...toggleProps,
+        children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.__experimentalHStack, {
+          justify: "flex-start",
+          children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(build_module_icon, {
+            className: "block-editor-global-styles__toggle-icon",
+            icon: library_shadow,
+            size: 24
+          }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.FlexItem, {
+            children: (0,external_wp_i18n_namespaceObject.__)('Drop shadow')
+          })]
+        })
+      }), !!shadow && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
+        __next40pxDefaultSize: true,
+        size: "small",
+        icon: library_reset,
+        ...removeButtonProps
+      })]
     });
   };
 }
@@ -26781,7 +26791,6 @@ function useShadowPresets(settings) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/border-panel.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -27043,7 +27052,6 @@ function BorderPanel({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/border.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -27665,23 +27673,7 @@ function ColorGradientControl(props) {
 }
 /* harmony default export */ const control = (ColorGradientControl);
 
-;// ./node_modules/@wordpress/icons/build-module/library/reset.js
-/**
- * WordPress dependencies
- */
-
-
-const reset_reset = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.SVG, {
-  xmlns: "http://www.w3.org/2000/svg",
-  viewBox: "0 0 24 24",
-  children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_primitives_namespaceObject.Path, {
-    d: "M7 11.5h10V13H7z"
-  })
-});
-/* harmony default export */ const library_reset = (reset_reset);
-
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/color-panel.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -28437,7 +28429,6 @@ function useBlockElement(clientId) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/contrast-checker.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -28810,7 +28801,6 @@ function color_addTransforms(result, source, index, results) {
 (0,external_wp_hooks_namespaceObject.addFilter)('blocks.switchToBlockType.transformedBlock', 'core/color/addTransforms', color_addTransforms);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/font-family/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -28892,7 +28882,6 @@ function FontFamilyControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/font-appearance-control/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -29333,7 +29322,6 @@ const alignJustify = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.js
 /* harmony default export */ const align_justify = (alignJustify);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/text-alignment-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -29453,7 +29441,6 @@ const formatCapitalize = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObjec
 /* harmony default export */ const format_capitalize = (formatCapitalize);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/text-transform-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -29550,7 +29537,6 @@ const formatStrikethrough = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceOb
 /* harmony default export */ const format_strikethrough = (formatStrikethrough);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/text-decoration-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -29643,7 +29629,6 @@ const textVertical = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.js
 /* harmony default export */ const text_vertical = (textVertical);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-mode-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -30559,7 +30544,6 @@ function font_size_addTransforms(result, source, index, results) {
 (0,external_wp_hooks_namespaceObject.addFilter)('blocks.switchToBlockType.transformedBlock', 'core/font-size/addTransforms', font_size_addTransforms);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/alignment-control/ui.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -30656,7 +30640,6 @@ const AlignmentToolbar = props => {
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/text-align.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -30804,7 +30787,6 @@ function addAssignedTextAlign(props, blockType, attributes) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/typography.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -30932,7 +30914,6 @@ const hasTypographySupport = blockName => {
 };
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/hooks/use-spacing-sizes.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -30992,7 +30973,6 @@ const settings_settings = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObje
 /* harmony default export */ const library_settings = (settings_settings);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/input-controls/spacing-input-control.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -31324,7 +31304,6 @@ function SpacingInputControl({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/input-controls/axial.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -31388,7 +31367,6 @@ function AxialInputControls({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/input-controls/separated.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -31438,7 +31416,6 @@ function SeparatedInputControls({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/spacing-sizes-control/input-controls/single.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -32281,7 +32258,6 @@ function AspectRatioTool({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/dimensions-panel.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -32829,24 +32805,29 @@ function DimensionsPanel({
  */
 
 
+const scrollContainerCache = new WeakMap();
+
 /**
  * Allow scrolling "through" popovers over the canvas. This is only called for
  * as long as the pointer is over a popover. Do not use React events because it
  * will bubble through portals.
  *
- * @param {Object} scrollableRef
+ * @param {Object} contentRef
  */
-function usePopoverScroll(scrollableRef) {
-  return (0,external_wp_compose_namespaceObject.useRefEffect)(node => {
-    if (!scrollableRef) {
-      return;
-    }
+function usePopoverScroll(contentRef) {
+  const effect = (0,external_wp_compose_namespaceObject.useRefEffect)(node => {
     function onWheel(event) {
       const {
         deltaX,
         deltaY
       } = event;
-      scrollableRef.current.scrollBy(deltaX, deltaY);
+      const contentEl = contentRef.current;
+      let scrollContainer = scrollContainerCache.get(contentEl);
+      if (!scrollContainer) {
+        scrollContainer = (0,external_wp_dom_namespaceObject.getScrollContainer)(contentEl);
+        scrollContainerCache.set(contentEl, scrollContainer);
+      }
+      scrollContainer.scrollBy(deltaX, deltaY);
     }
     // Tell the browser that we do not call event.preventDefault
     // See https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#improving_scrolling_performance_with_passive_listeners
@@ -32857,7 +32838,8 @@ function usePopoverScroll(scrollableRef) {
     return () => {
       node.removeEventListener('wheel', onWheel, options);
     };
-  }, [scrollableRef]);
+  }, [contentRef]);
+  return contentRef ? effect : null;
 }
 /* harmony default export */ const use_popover_scroll = (usePopoverScroll);
 
@@ -33504,7 +33486,6 @@ function useCustomSides() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/style.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -34022,7 +34003,6 @@ function DuotoneControl({
 /* harmony default export */ const duotone_control = (DuotoneControl);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/duotone/utils.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -34226,7 +34206,6 @@ function getBlockCSSSelector(blockType, target = 'root', options = {}) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/filters-panel.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -34235,6 +34214,7 @@ function getBlockCSSSelector(blockType, target = 'root', options = {}) {
 /**
  * WordPress dependencies
  */
+
 
 
 
@@ -34313,6 +34293,46 @@ const LabeledColorIndicator = ({
     children: label
   })]
 });
+const renderToggle = (duotone, resetDuotone) => ({
+  onToggle,
+  isOpen
+}) => {
+  const duotoneButtonRef = (0,external_wp_element_namespaceObject.useRef)(undefined);
+  const toggleProps = {
+    onClick: onToggle,
+    className: dist_clsx({
+      'is-open': isOpen
+    }),
+    'aria-expanded': isOpen,
+    ref: duotoneButtonRef
+  };
+  const removeButtonProps = {
+    onClick: () => {
+      if (isOpen) {
+        onToggle();
+      }
+      resetDuotone();
+      // Return focus to parent button.
+      duotoneButtonRef.current?.focus();
+    },
+    className: 'block-editor-panel-duotone-settings__reset',
+    label: (0,external_wp_i18n_namespaceObject.__)('Reset')
+  };
+  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_ReactJSXRuntime_namespaceObject.Fragment, {
+    children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
+      __next40pxDefaultSize: true,
+      ...toggleProps,
+      children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(LabeledColorIndicator, {
+        indicator: duotone,
+        label: (0,external_wp_i18n_namespaceObject.__)('Duotone')
+      })
+    }), duotone && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Button, {
+      size: "small",
+      icon: library_reset,
+      ...removeButtonProps
+    })]
+  });
+};
 function FiltersPanel({
   as: Wrapper = FiltersToolsPanel,
   value,
@@ -34371,30 +34391,7 @@ function FiltersPanel({
       children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Dropdown, {
         popoverProps: filters_panel_popoverProps,
         className: "block-editor-global-styles-filters-panel__dropdown",
-        renderToggle: ({
-          onToggle,
-          isOpen
-        }) => {
-          const toggleProps = {
-            onClick: onToggle,
-            className: dist_clsx({
-              'is-open': isOpen
-            }),
-            'aria-expanded': isOpen
-          };
-          return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalItemGroup, {
-            isBordered: true,
-            isSeparated: true,
-            children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalItem, {
-              as: "button",
-              ...toggleProps,
-              children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(LabeledColorIndicator, {
-                indicator: duotone,
-                label: (0,external_wp_i18n_namespaceObject.__)('Duotone')
-              })
-            })
-          });
-        },
+        renderToggle: renderToggle(duotone, resetDuotone),
         renderContent: () => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalDropdownContentWrapper, {
           paddingSize: "small",
           children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_wp_components_namespaceObject.MenuGroup, {
@@ -34419,7 +34416,6 @@ function FiltersPanel({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/duotone.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -34833,7 +34829,6 @@ function useBlockDisplayInformation(clientId) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/position.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -35162,7 +35157,6 @@ function position_useBlockProps({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/use-global-styles-output.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -36209,7 +36203,6 @@ function useGlobalStylesOutput(disableRootPadding = false) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/block-style-variation.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -36528,7 +36521,6 @@ function block_style_variation_useBlockProps({
 });
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/layout.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -36739,7 +36731,7 @@ function LayoutPanelPure({
                 type: layoutType?.name === 'constrained' || hasContentSizeOrLegacySettings ? 'default' : 'constrained'
               }
             }),
-            help: layoutType?.name === 'constrained' || hasContentSizeOrLegacySettings ? (0,external_wp_i18n_namespaceObject.__)('Nested blocks use content width with options for full and wide widths.') : (0,external_wp_i18n_namespaceObject.__)('Nested blocks will fill the width of this container. Toggle to constrain.')
+            help: layoutType?.name === 'constrained' || hasContentSizeOrLegacySettings ? (0,external_wp_i18n_namespaceObject.__)('Nested blocks use content width with options for full and wide widths.') : (0,external_wp_i18n_namespaceObject.__)('Nested blocks will fill the width of this container.')
           })
         }), !inherit && allowSwitching && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(LayoutTypeSwitcher, {
           type: blockLayoutType,
@@ -36924,7 +36916,6 @@ const withLayoutStyles = (0,external_wp_compose_namespaceObject.createHigherOrde
 (0,external_wp_hooks_namespaceObject.addFilter)('editor.BlockListBlock', 'core/editor/layout/with-layout-styles', withLayoutStyles);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/grid/utils.js
-/* wp:polyfill */
 function range(start, length) {
   return Array.from({
     length
@@ -37348,7 +37339,6 @@ let OperationType = /*#__PURE__*/function (OperationType) {
 }({});
 
 ;// ./node_modules/@wordpress/upload-media/build-module/store/reducer.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -37486,7 +37476,6 @@ function reducer_reducer(state = DEFAULT_STATE, action = {
 /* harmony default export */ const store_reducer = (reducer_reducer);
 
 ;// ./node_modules/@wordpress/upload-media/build-module/store/selectors.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -37549,7 +37538,6 @@ function selectors_getSettings(state) {
 }
 
 ;// ./node_modules/@wordpress/upload-media/build-module/store/private-selectors.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -37750,7 +37738,6 @@ class UploadError extends Error {
 }
 
 ;// ./node_modules/@wordpress/upload-media/build-module/validate-mime-type.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -37793,7 +37780,6 @@ function validateMimeType(file, allowedTypes) {
 }
 
 ;// ./node_modules/@wordpress/upload-media/build-module/get-mime-types-array.js
-/* wp:polyfill */
 /**
  * Browsers may use unexpected mime types, and they differ from browser to browser.
  * This function computes a flexible array of mime types from the mime type structured provided by the server.
@@ -38634,7 +38620,6 @@ const with_registry_provider_withRegistryProvider = (0,external_wp_compose_names
 /* harmony default export */ const provider_with_registry_provider = (with_registry_provider_withRegistryProvider);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/provider/use-block-sync.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -38920,6 +38905,33 @@ function KeyboardShortcutsRegister() {
   } = (0,external_wp_data_namespaceObject.useDispatch)(external_wp_keyboardShortcuts_namespaceObject.store);
   (0,external_wp_element_namespaceObject.useEffect)(() => {
     registerShortcut({
+      name: 'core/block-editor/copy',
+      category: 'block',
+      description: (0,external_wp_i18n_namespaceObject.__)('Copy the selected block(s).'),
+      keyCombination: {
+        modifier: 'primary',
+        character: 'c'
+      }
+    });
+    registerShortcut({
+      name: 'core/block-editor/cut',
+      category: 'block',
+      description: (0,external_wp_i18n_namespaceObject.__)('Cut the selected block(s).'),
+      keyCombination: {
+        modifier: 'primary',
+        character: 'x'
+      }
+    });
+    registerShortcut({
+      name: 'core/block-editor/paste',
+      category: 'block',
+      description: (0,external_wp_i18n_namespaceObject.__)('Paste the selected block(s).'),
+      keyCombination: {
+        modifier: 'primary',
+        character: 'v'
+      }
+    });
+    registerShortcut({
       name: 'core/block-editor/duplicate',
       category: 'block',
       description: (0,external_wp_i18n_namespaceObject.__)('Duplicate the selected block(s).'),
@@ -38933,7 +38945,7 @@ function KeyboardShortcutsRegister() {
       category: 'block',
       description: (0,external_wp_i18n_namespaceObject.__)('Remove the selected block(s).'),
       keyCombination: {
-        modifier: 'shift',
+        modifier: 'primaryShift',
         character: 'backspace'
       }
     });
@@ -39225,7 +39237,6 @@ function BlockContextProvider({
 /* harmony default export */ const block_context = (block_context_Context);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/block-bindings.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -39480,7 +39491,6 @@ function useBlockBindingsUtils(clientId) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-edit/edit.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -39712,7 +39722,6 @@ const moreVertical = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.js
 /* harmony default export */ const more_vertical = (moreVertical);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/warning/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -39953,7 +39962,6 @@ function BlockView({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-compare/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -40025,7 +40033,6 @@ function BlockCompare({
 /* harmony default export */ const block_compare = (BlockCompare);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-list/block-invalid-warning.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -40422,7 +40429,6 @@ function useMovingAnimation({
 /* harmony default export */ const use_moving_animation = (useMovingAnimation);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-list/use-block-props/use-focus-first-element.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -40927,7 +40933,6 @@ function useScrollIntoView({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/use-flash-editable-blocks/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -41024,12 +41029,15 @@ function down(event) {
   } = event;
   const {
     ownerDocument,
-    isContentEditable
+    isContentEditable,
+    tagName
   } = target;
+  const isInputOrTextArea = ['INPUT', 'TEXTAREA'].includes(tagName);
   const nodes = nodesByDocument.get(ownerDocument);
-  if (isContentEditable) {
-    // Whenever an editable element is clicked, check which draggable
-    // blocks contain this element, and temporarily disable draggability.
+  if (isContentEditable || isInputOrTextArea) {
+    // Whenever an editable element or an input or textarea is clicked,
+    // check which draggable blocks contain this element, and temporarily
+    // disable draggability.
     for (const node of nodes) {
       if (node.getAttribute('draggable') === 'true' && node.contains(target)) {
         node.removeAttribute('draggable');
@@ -41037,8 +41045,8 @@ function down(event) {
       }
     }
   } else {
-    // Whenever a non-editable element is clicked, re-enable draggability
-    // for any blocks that were previously disabled.
+    // Whenever a non-editable element or an input or textarea is clicked,
+    // re-enable draggability for any blocks that were previously disabled.
     for (const node of nodes) {
       restore(node);
     }
@@ -41046,11 +41054,11 @@ function down(event) {
 }
 
 /**
- * In Firefox, the `draggable` and `contenteditable` attributes don't play well
- * together. When `contenteditable` is within a `draggable` element, selection
- * doesn't get set in the right place. The only solution is to temporarily
- * remove the `draggable` attribute clicking inside `contenteditable` elements.
- *
+ * In Firefox, the `draggable` and `contenteditable` or `input` or `textarea`
+ * elements don't play well together. When these elements are within a
+ * `draggable` element, selection doesn't get set in the right place. The only
+ * solution is to temporarily remove the `draggable` attribute clicking inside
+ * these elements.
  * @return {Function} Cleanup function.
  */
 function useFirefoxDraggableCompatibility() {
@@ -41251,7 +41259,6 @@ function use_block_props_useBlockProps(props = {}, {
 use_block_props_useBlockProps.save = external_wp_blocks_namespaceObject.__unstableGetBlockProps;
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-list/block.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -42609,7 +42616,6 @@ function InsertionPoint(props) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-list/use-in-between-inserter.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -43089,7 +43095,6 @@ function useInnerBlockTemplateSync(clientId, template, templateLock, templateIns
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inner-blocks/use-block-context.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -43126,7 +43131,6 @@ function useBlockContext(clientId) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/use-on-block-drop/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -43385,7 +43389,6 @@ function useOnBlockDrop(targetRootClientId, targetBlockIndex, options = {}) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/math.js
-/* wp:polyfill */
 /**
  * A string representing the name of an edge.
  *
@@ -43492,7 +43495,6 @@ function isPointWithinTopAndBottomBoundariesOfRect(point, rect) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/use-block-drop-zone/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -44025,11 +44027,11 @@ const ForwardedInnerBlocks = (0,external_wp_element_namespaceObject.forwardRef)(
  * returns. Optionally, you can also pass any other props through this hook, and
  * they will be merged and returned.
  *
+ * @see https://github.com/WordPress/gutenberg/blob/HEAD/packages/block-editor/src/components/inner-blocks/README.md
+ *
  * @param {Object} props   Optional. Props to pass to the element. Must contain
  *                         the ref if one is defined.
  * @param {Object} options Optional. Inner blocks options.
- *
- * @see https://github.com/WordPress/gutenberg/blob/HEAD/packages/block-editor/src/components/inner-blocks/README.md
  */
 function useInnerBlocksProps(props = {}, options = {}) {
   const {
@@ -44503,7 +44505,6 @@ function ZoomOutSeparator({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-list/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -44512,6 +44513,7 @@ function ZoomOutSeparator({
 /**
  * WordPress dependencies
  */
+
 
 
 
@@ -44655,13 +44657,13 @@ function Items({
     const {
       getSettings,
       getBlockOrder,
-      getSelectedBlockClientId,
       getSelectedBlockClientIds,
       __unstableGetVisibleBlocks,
       getTemplateLock,
       getBlockEditingMode,
       isSectionBlock,
-      isZoomOut: _isZoomOut
+      isZoomOut: _isZoomOut,
+      canInsertBlockType
     } = unlock(select(store));
     const _order = getBlockOrder(rootClientId);
     if (getSettings().isPreviewMode) {
@@ -44671,13 +44673,16 @@ function Items({
         visibleBlocks: block_list_EMPTY_SET
       };
     }
-    const selectedBlockClientId = getSelectedBlockClientId();
+    const selectedBlockClientIds = getSelectedBlockClientIds();
+    const selectedBlockClientId = selectedBlockClientIds[0];
+    const showRootAppender = !rootClientId && !selectedBlockClientId && (!_order.length || !canInsertBlockType((0,external_wp_blocks_namespaceObject.getDefaultBlockName)(), rootClientId));
+    const hasSelectedRoot = !!(rootClientId && selectedBlockClientId && rootClientId === selectedBlockClientId);
     return {
       order: _order,
-      selectedBlocks: getSelectedBlockClientIds(),
+      selectedBlocks: selectedBlockClientIds,
       visibleBlocks: __unstableGetVisibleBlocks(),
       isZoomOut: _isZoomOut(),
-      shouldRenderAppender: !isSectionBlock(rootClientId) && getBlockEditingMode(rootClientId) !== 'disabled' && !getTemplateLock(rootClientId) && hasAppender && !_isZoomOut() && (hasCustomAppender || rootClientId === selectedBlockClientId || !rootClientId && !selectedBlockClientId && !_order.length)
+      shouldRenderAppender: !isSectionBlock(rootClientId) && getBlockEditingMode(rootClientId) !== 'disabled' && !getTemplateLock(rootClientId) && hasAppender && !_isZoomOut() && (hasCustomAppender || hasSelectedRoot || showRootAppender)
     };
   }, [rootClientId, hasAppender, hasCustomAppender]);
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(LayoutProvider, {
@@ -44801,7 +44806,6 @@ function useMultiSelection() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-flow/use-tab-nav.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -44819,7 +44823,7 @@ function useMultiSelection() {
 
 
 function useTabNav() {
-  const container = (0,external_wp_element_namespaceObject.useRef)();
+  const containerRef = /** @type {typeof useRef<HTMLElement>} */(0,external_wp_element_namespaceObject.useRef)();
   const focusCaptureBeforeRef = (0,external_wp_element_namespaceObject.useRef)();
   const focusCaptureAfterRef = (0,external_wp_element_namespaceObject.useRef)();
   const {
@@ -44839,19 +44843,19 @@ function useTabNav() {
   // capturing on the focus capture elements.
   const noCaptureRef = (0,external_wp_element_namespaceObject.useRef)();
   function onFocusCapture(event) {
-    const canvasElement = container.current.ownerDocument === event.target.ownerDocument ? container.current : container.current.ownerDocument.defaultView.frameElement;
+    const canvasElement = containerRef.current.ownerDocument === event.target.ownerDocument ? containerRef.current : containerRef.current.ownerDocument.defaultView.frameElement;
 
     // Do not capture incoming focus if set by us in WritingFlow.
     if (noCaptureRef.current) {
       noCaptureRef.current = null;
     } else if (hasMultiSelection()) {
-      container.current.focus();
+      containerRef.current.focus();
     } else if (getSelectedBlockClientId()) {
       if (getLastFocus()?.current) {
         getLastFocus().current.focus();
       } else {
         // Handles when the last focus has not been set yet, or has been cleared by new blocks being added via the inserter.
-        container.current.querySelector(`[data-block="${getSelectedBlockClientId()}"]`).focus();
+        containerRef.current.querySelector(`[data-block="${getSelectedBlockClientId()}"]`).focus();
       }
     }
     // In "compose" mode without a selected ID, we want to place focus on the section root when tabbing to the canvas.
@@ -44861,11 +44865,11 @@ function useTabNav() {
 
       // If we have section within the section root, focus the first one.
       if (sectionBlocks.length) {
-        container.current.querySelector(`[data-block="${sectionBlocks[0]}"]`).focus();
+        containerRef.current.querySelector(`[data-block="${sectionBlocks[0]}"]`).focus();
       }
       // If we don't have any section blocks, focus the section root.
       else if (sectionRootClientId) {
-        container.current.querySelector(`[data-block="${sectionRootClientId}"]`).focus();
+        containerRef.current.querySelector(`[data-block="${sectionRootClientId}"]`).focus();
       } else {
         // If we don't have any section root, focus the canvas.
         canvasElement.focus();
@@ -44874,7 +44878,7 @@ function useTabNav() {
       const isBefore =
       // eslint-disable-next-line no-bitwise
       event.target.compareDocumentPosition(canvasElement) & event.target.DOCUMENT_POSITION_FOLLOWING;
-      const tabbables = external_wp_dom_namespaceObject.focus.tabbable.find(container.current);
+      const tabbables = external_wp_dom_namespaceObject.focus.tabbable.find(containerRef.current);
       if (tabbables.length) {
         const next = isBefore ? tabbables[0] : tabbables[tabbables.length - 1];
         next.focus();
@@ -44906,16 +44910,26 @@ function useTabNav() {
       if (event.keyCode !== external_wp_keycodes_namespaceObject.TAB) {
         return;
       }
-      const isShift = event.shiftKey;
+      if (
+      // Bails in case the focus capture elements aren’t present. They
+      // may be omitted to avoid silent tab stops in preview mode.
+      // See: https://github.com/WordPress/gutenberg/pull/59317
+      !focusCaptureAfterRef.current || !focusCaptureBeforeRef.current) {
+        return;
+      }
+      const {
+        target,
+        shiftKey: isShift
+      } = event;
       const direction = isShift ? 'findPrevious' : 'findNext';
-      const nextTabbable = external_wp_dom_namespaceObject.focus.tabbable[direction](event.target);
+      const nextTabbable = external_wp_dom_namespaceObject.focus.tabbable[direction](target);
 
       // We want to constrain the tabbing to the block and its child blocks.
       // If the preceding form element is within a different block,
       // such as two sibling image blocks in the placeholder state,
       // we want shift + tab from the first form element to move to the image
       // block toolbar and not the previous image block's form element.
-      const currentBlock = event.target.closest('[data-block]');
+      const currentBlock = target.closest('[data-block]');
       const isElementPartOfSelectedBlock = currentBlock && nextTabbable && (isInSameBlock(currentBlock, nextTabbable) || isInsideRootBlock(currentBlock, nextTabbable));
 
       // Allow tabbing from the block wrapper to a form element,
@@ -44952,7 +44966,7 @@ function useTabNav() {
 
       // If focus disappears due to there being no blocks, move focus to
       // the writing flow wrapper.
-      if (!event.relatedTarget && ownerDocument.activeElement === ownerDocument.body && getBlockCount() === 0) {
+      if (!event.relatedTarget && event.target.hasAttribute('data-block') && ownerDocument.activeElement === ownerDocument.body && getBlockCount() === 0) {
         node.focus();
       }
     }
@@ -44972,7 +44986,7 @@ function useTabNav() {
       if (event.target?.getAttribute('role') === 'region') {
         return;
       }
-      if (container.current === event.target) {
+      if (containerRef.current === event.target) {
         return;
       }
       const isShift = event.shiftKey;
@@ -45001,12 +45015,11 @@ function useTabNav() {
       node.removeEventListener('focusout', onFocusOut);
     };
   }, []);
-  const mergedRefs = (0,external_wp_compose_namespaceObject.useMergeRefs)([container, ref]);
+  const mergedRefs = (0,external_wp_compose_namespaceObject.useMergeRefs)([containerRef, ref]);
   return [before, mergedRefs, after];
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-flow/use-arrow-nav.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -45759,7 +45772,6 @@ function useClickSelection() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-flow/use-input.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -46085,7 +46097,6 @@ function shouldDismissPastedFiles(files, html /*, plainText */) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-flow/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -46181,7 +46192,6 @@ function toPlainText(html) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/writing-flow/use-clipboard-handler.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -46450,7 +46460,6 @@ function WritingFlow({
 /* harmony default export */ const writing_flow = ((0,external_wp_element_namespaceObject.forwardRef)(WritingFlow));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/iframe/get-compatibility-styles.js
-/* wp:polyfill */
 let compatibilityStyles = null;
 
 /**
@@ -47072,10 +47081,17 @@ function Iframe({
     function preventFileDropDefault(event) {
       event.preventDefault();
     }
+    const {
+      ownerDocument
+    } = node;
+
+    // Ideally ALL classes that are added through get_body_class should
+    // be added in the editor too, which we'll somehow have to get from
+    // the server in the future (which will run the PHP filters).
+    setBodyClasses(Array.from(ownerDocument.body.classList).filter(name => name.startsWith('admin-color-') || name.startsWith('post-type-') || name === 'wp-embed-responsive'));
     function onLoad() {
       const {
-        contentDocument,
-        ownerDocument
+        contentDocument
       } = node;
       const {
         documentElement
@@ -47083,11 +47099,6 @@ function Iframe({
       iFrameDocument = contentDocument;
       documentElement.classList.add('block-editor-iframe__html');
       clearerRef(documentElement);
-
-      // Ideally ALL classes that are added through get_body_class should
-      // be added in the editor too, which we'll somehow have to get from
-      // the server in the future (which will run the PHP filters).
-      setBodyClasses(Array.from(ownerDocument.body.classList).filter(name => name.startsWith('admin-color-') || name.startsWith('post-type-') || name === 'wp-embed-responsive'));
       contentDocument.dir = ownerDocument.dir;
       for (const compatStyle of getCompatibilityStyles()) {
         if (contentDocument.getElementById(compatStyle.id)) {
@@ -47672,7 +47683,6 @@ var postcss_prefix_selector_default = /*#__PURE__*/__webpack_require__.n(postcss
 var postcss_urlrebase = __webpack_require__(5404);
 var postcss_urlrebase_default = /*#__PURE__*/__webpack_require__.n(postcss_urlrebase);
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/transform-styles/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -47846,7 +47856,6 @@ const transform_styles_transformStyles = (styles, wrapperSelector = '', transfor
 /* harmony default export */ const transform_styles = (transform_styles_transformStyles);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/editor-styles/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -48636,7 +48645,6 @@ function InserterListboxRow(props, ref) {
 /* harmony default export */ const inserter_listbox_row = ((0,external_wp_element_namespaceObject.forwardRef)(InserterListboxRow));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-types-list/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -48813,22 +48821,17 @@ function InserterListbox({
  */
 
 
-
 function InserterNoResults() {
-  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)("div", {
+  return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
     className: "block-editor-inserter__no-results",
-    children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(build_module_icon, {
-      className: "block-editor-inserter__no-results-icon",
-      icon: block_default
-    }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
+    children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("p", {
       children: (0,external_wp_i18n_namespaceObject.__)('No results found.')
-    })]
+    })
   });
 }
 /* harmony default export */ const no_results = (InserterNoResults);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/block-types-tab.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -49008,7 +49011,6 @@ function BlockTypesTab({
 /* harmony default export */ const block_types_tab = ((0,external_wp_element_namespaceObject.forwardRef)(BlockTypesTab));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/block-patterns-explorer/pattern-explorer-sidebar.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -49168,7 +49170,6 @@ function Pagination({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-patterns-list/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -49531,7 +49532,6 @@ function useInsertionPoint({
 /* harmony default export */ const use_insertion_point = (useInsertionPoint);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/hooks/use-patterns-state.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -49707,7 +49707,6 @@ function dist_es2015_replace(input, re, value) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/search-items.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -49933,7 +49932,6 @@ function usePatternsPaging(currentCategoryPatterns, currentCategory, scrollConta
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/block-patterns-explorer/pattern-list.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -49974,7 +49972,8 @@ function PatternList({
   searchValue,
   selectedCategory,
   patternCategories,
-  rootClientId
+  rootClientId,
+  onModalClose
 }) {
   const container = (0,external_wp_element_namespaceObject.useRef)();
   const debouncedSpeak = (0,external_wp_compose_namespaceObject.useDebounce)(external_wp_a11y_namespaceObject.speak, 500);
@@ -49990,6 +49989,9 @@ function PatternList({
         return true;
       }
       if (selectedCategory === myPatternsCategory.name && pattern.type === INSERTER_PATTERN_TYPES.user) {
+        return true;
+      }
+      if (selectedCategory === starterPatternsCategory.name && pattern.blockTypes?.includes('core/post-content')) {
         return true;
       }
       if (selectedCategory === 'uncategorized') {
@@ -50034,7 +50036,10 @@ function PatternList({
       children: hasItems && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)(external_ReactJSXRuntime_namespaceObject.Fragment, {
         children: [/*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(block_patterns_list, {
           blockPatterns: pagingProps.categoryPatterns,
-          onClickPattern: onClickPattern,
+          onClickPattern: (pattern, blocks) => {
+            onClickPattern(pattern, blocks);
+            onModalClose();
+          },
           isDraggable: false
         }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(Pagination, {
           ...pagingProps
@@ -50046,7 +50051,6 @@ function PatternList({
 /* harmony default export */ const pattern_list = (PatternList);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/block-patterns-tab/use-pattern-categories.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -50114,10 +50118,11 @@ function usePatternCategories(rootClientId, sourceFilter = 'all') {
 
 function PatternsExplorer({
   initialCategory,
-  rootClientId
+  rootClientId,
+  onModalClose
 }) {
   const [searchValue, setSearchValue] = (0,external_wp_element_namespaceObject.useState)('');
-  const [selectedCategory, setSelectedCategory] = (0,external_wp_element_namespaceObject.useState)(initialCategory);
+  const [selectedCategory, setSelectedCategory] = (0,external_wp_element_namespaceObject.useState)(initialCategory?.name);
   const patternCategories = usePatternCategories(rootClientId);
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsxs)("div", {
     className: "block-editor-block-patterns-explorer",
@@ -50131,7 +50136,8 @@ function PatternsExplorer({
       searchValue: searchValue,
       selectedCategory: selectedCategory,
       patternCategories: patternCategories,
-      rootClientId: rootClientId
+      rootClientId: rootClientId,
+      onModalClose: onModalClose
     })]
   });
 }
@@ -50144,6 +50150,7 @@ function PatternsExplorerModal({
     onRequestClose: onModalClose,
     isFullScreen: true,
     children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(PatternsExplorer, {
+      onModalClose: onModalClose,
       ...restProps
     })
   });
@@ -50151,7 +50158,6 @@ function PatternsExplorerModal({
 /* harmony default export */ const block_patterns_explorer = (PatternsExplorerModal);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/mobile-tab-navigation.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -50241,7 +50247,7 @@ function MobileTabNavigation({
 
 const getShouldDisableSyncFilter = sourceFilter => sourceFilter !== 'all' && sourceFilter !== 'user';
 const getShouldHideSourcesFilter = category => {
-  return category?.name === myPatternsCategory.name;
+  return category.name === myPatternsCategory.name;
 };
 const PATTERN_SOURCE_MENU_OPTIONS = [{
   value: 'all',
@@ -50268,7 +50274,7 @@ function PatternsFilter({
   // we do this by deriving from props rather than calling setPatternSourceFilter otherwise
   // the user may be confused when switching to another category if the haven't explicitly set
   // this filter themselves.
-  const currentPatternSourceFilter = category?.name === myPatternsCategory.name ? INSERTER_PATTERN_TYPES.user : patternSourceFilter;
+  const currentPatternSourceFilter = category.name === myPatternsCategory.name ? INSERTER_PATTERN_TYPES.user : patternSourceFilter;
 
   // We need to disable the sync filter option if the source filter is not 'all' or 'user'
   // otherwise applying them will just result in no patterns being shown.
@@ -50352,7 +50358,6 @@ function PatternsFilter({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/block-patterns-tab/pattern-category-previews.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -50387,13 +50392,13 @@ function PatternCategoryPreviews({
     if (isPatternFiltered(pattern, patternSourceFilter, patternSyncFilter)) {
       return false;
     }
-    if (category.name === allPatternsCategory?.name) {
+    if (category.name === allPatternsCategory.name) {
       return true;
     }
-    if (category.name === myPatternsCategory?.name && pattern.type === INSERTER_PATTERN_TYPES.user) {
+    if (category.name === myPatternsCategory.name && pattern.type === INSERTER_PATTERN_TYPES.user) {
       return true;
     }
-    if (category.name === starterPatternsCategory?.name && pattern.blockTypes?.includes('core/post-content')) {
+    if (category.name === starterPatternsCategory.name && pattern.blockTypes?.includes('core/post-content')) {
       return true;
     }
     if (category.name === 'uncategorized') {
@@ -50433,7 +50438,7 @@ function PatternCategoryPreviews({
             size: 13,
             level: 4,
             as: "div",
-            children: category?.label
+            children: category.label
           })
         }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(PatternsFilter, {
           patternSyncFilter: patternSyncFilter,
@@ -50472,7 +50477,6 @@ function PatternCategoryPreviews({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/category-tabs/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -50527,7 +50531,7 @@ function CategoryTabs({
       className: "block-editor-inserter__category-tablist",
       children: categories.map(category => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(category_tabs_Tabs.Tab, {
         tabId: category.name,
-        "aria-current": category.name === selectedCategory?.name ? 'true' : undefined,
+        "aria-current": category === selectedCategory ? 'true' : undefined,
         children: category.label
       }, category.name))
     }), categories.map(category => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(category_tabs_Tabs.TabPanel, {
@@ -50615,7 +50619,7 @@ function BlockPatternsTab({
         }, category.name)
       })
     }), showPatternsExplorer && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(block_patterns_explorer, {
-      initialCategory: selectedCategory?.name || categories[0]?.name,
+      initialCategory: selectedCategory || categories[0],
       patternCategories: categories,
       onModalClose: () => setShowPatternsExplorer(false),
       rootClientId: rootClientId
@@ -50950,7 +50954,6 @@ function MediaPreview({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/media-tab/media-list.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -50982,7 +50985,6 @@ function MediaList({
 /* harmony default export */ const media_list = (MediaList);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/media-tab/hooks.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -51154,7 +51156,6 @@ function MediaCategoryPanel({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/media-tab/media-tab.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -51293,7 +51294,6 @@ const orderInserterBlockItems = (items, priority) => {
 };
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/search-results.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -51366,7 +51366,7 @@ function InserterSearchResults({
     selectBlockOnInsert
   });
   const [blockTypes, blockTypeCategories, blockTypeCollections, onSelectBlockType] = use_block_types_state(destinationRootClientId, onInsertBlocks, isQuick);
-  const [patterns,, onClickPattern] = use_patterns_state(onInsertBlocks, destinationRootClientId);
+  const [patterns,, onClickPattern] = use_patterns_state(onInsertBlocks, destinationRootClientId, undefined, isQuick);
   const filteredBlockPatterns = (0,external_wp_element_namespaceObject.useMemo)(() => {
     if (maxBlockPatterns === 0) {
       return [];
@@ -51472,7 +51472,6 @@ const closeSmall = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)
 /* harmony default export */ const close_small = (closeSmall);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/tabbed-sidebar/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -51584,7 +51583,6 @@ function TabbedSidebar({
 
 
 
-
 /**
  * A hook used to set the editor mode to zoomed out mode, invoking the hook sets the mode.
  * Concepts:
@@ -51594,9 +51592,6 @@ function TabbedSidebar({
  * @param {boolean} enabled If we should enter into zoomOut mode or not
  */
 function useZoomOut(enabled = true) {
-  const {
-    postId
-  } = (0,external_wp_element_namespaceObject.useContext)(block_context);
   const {
     setZoomLevel,
     resetZoomLevel
@@ -51620,7 +51615,6 @@ function useZoomOut(enabled = true) {
   }, []);
   const controlZoomLevelRef = (0,external_wp_element_namespaceObject.useRef)(false);
   const isEnabledRef = (0,external_wp_element_namespaceObject.useRef)(enabled);
-  const postIdRef = (0,external_wp_element_namespaceObject.useRef)(postId);
 
   /**
    * This hook tracks if the zoom state was changed manually by the user via clicking
@@ -51637,11 +51631,6 @@ function useZoomOut(enabled = true) {
   }, [isZoomedOut]);
   (0,external_wp_element_namespaceObject.useEffect)(() => {
     isEnabledRef.current = enabled;
-
-    // If the user created a new post/page, we should take control of the zoom level.
-    if (postIdRef.current !== postId) {
-      controlZoomLevelRef.current = true;
-    }
     if (enabled !== isZoomOut()) {
       controlZoomLevelRef.current = true;
       if (enabled) {
@@ -51656,7 +51645,7 @@ function useZoomOut(enabled = true) {
         resetZoomLevel();
       }
     };
-  }, [enabled, isZoomOut, postId, resetZoomLevel, setZoomLevel]);
+  }, [enabled, isZoomOut, resetZoomLevel, setZoomLevel]);
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/menu.js
@@ -51951,6 +51940,7 @@ function PublicInserterMenu(props, ref) {
 
 const SEARCH_THRESHOLD = 6;
 const SHOWN_BLOCK_TYPES = 6;
+const SHOWN_BLOCK_PATTERNS = 2;
 function QuickInserter({
   onSelect,
   rootClientId,
@@ -52024,7 +52014,7 @@ function QuickInserter({
         rootClientId: rootClientId,
         clientId: clientId,
         isAppender: isAppender,
-        maxBlockPatterns: 0,
+        maxBlockPatterns: !!filterValue ? SHOWN_BLOCK_PATTERNS : 0,
         maxBlockTypes: SHOWN_BLOCK_TYPES,
         isDraggable: false,
         selectBlockOnInsert: selectBlockOnInsert,
@@ -52041,7 +52031,6 @@ function QuickInserter({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inserter/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -52481,7 +52470,6 @@ const ButtonBlockerAppender = (0,external_wp_element_namespaceObject.forwardRef)
 /* harmony default export */ const button_block_appender = ((0,external_wp_element_namespaceObject.forwardRef)(button_block_appender_ButtonBlockAppender));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/grid/grid-visualizer.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -53449,7 +53437,6 @@ function addMetaAttribute(blockTypeSettings) {
 (0,external_wp_hooks_namespaceObject.addFilter)('blocks.registerBlockType', 'core/metadata/addMetaAttribute', addMetaAttribute);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/block-hooks.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -53636,7 +53623,6 @@ function BlockHooksControlPure({
 });
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/block-bindings.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -53953,7 +53939,6 @@ function addLabelCallback(settings) {
 (0,external_wp_hooks_namespaceObject.addFilter)('blocks.registerBlockType', 'core/metadata/addLabelCallback', addLabelCallback);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/grid/use-grid-layout-sync.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -54532,7 +54517,6 @@ function useCachedTruthy(value) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/index.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -54582,7 +54566,6 @@ createBlockSaveFilter([align, text_align, hooks_anchor, aria_label, custom_class
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/colors/with-colors.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -54817,7 +54800,6 @@ function font_size_picker_FontSizePicker(props) {
 /* harmony default export */ const font_size_picker = (font_size_picker_FontSizePicker);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/font-sizes/with-font-sizes.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -54944,7 +54926,6 @@ const with_font_sizes_upperFirst = ([firstLetter, ...rest]) => firstLetter.toUpp
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/autocompleters/block.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -55075,7 +55056,6 @@ const post = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(exter
 /* harmony default export */ const library_post = (post);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/autocompleters/link.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -55138,7 +55118,6 @@ function createLinkCompleter() {
 /* harmony default export */ const autocompleters_link = (createLinkCompleter());
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/autocomplete/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -55441,7 +55420,6 @@ function BlockTitle({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/utils/get-editor-region.js
-/* wp:polyfill */
 /**
  * Gets the editor region for a given editor canvas element or
  * returns the passed element if no region is found
@@ -55471,7 +55449,6 @@ function getEditorRegion(editor) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-breadcrumb/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -55757,7 +55734,6 @@ function useBlockToolbarPopoverProps({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-tools/use-selected-block-tool-props.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -56884,7 +56860,6 @@ function PreviewBlockPopover({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/block-variation-transformations.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -56980,7 +56955,6 @@ function BlockVariationTransformationItem({
 /* harmony default export */ const block_variation_transformations = (BlockVariationTransformations);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/block-transformations-menu.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57314,7 +57288,6 @@ function useStylesForBlocks({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-styles/menu-items.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57390,7 +57363,6 @@ function BlockStylesMenu({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57454,7 +57426,6 @@ const getRetainedBlockAttributes = (name, attributes) => {
 };
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/use-transformed-patterns.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57556,7 +57527,6 @@ const useTransformedPatterns = (patterns, selectedBlocks) => {
 /* harmony default export */ const use_transformed_patterns = (useTransformedPatterns);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/pattern-transformations-menu.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57665,7 +57635,6 @@ function pattern_transformations_menu_BlockPattern({
 /* harmony default export */ const pattern_transformations_menu = (PatternTransformationsMenu);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-switcher/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -57940,7 +57909,6 @@ __unstableBlockToolbarLastItem.Slot = block_toolbar_last_item_Slot;
 /* harmony default export */ const block_toolbar_last_item = (__unstableBlockToolbarLastItem);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/hooks/supports.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -58220,7 +58188,6 @@ const getLayoutSupport = nameOrType => getBlockSupport(nameOrType, LAYOUT_SUPPOR
 const supports_hasStyleSupport = nameOrType => supports_styleSupportKeys.some(key => (0,external_wp_blocks_namespaceObject.hasBlockSupport)(nameOrType, key));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/use-paste-styles/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -58384,7 +58351,6 @@ function usePasteStyles() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-actions/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -58771,7 +58737,6 @@ const lock_lock = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(
 /* harmony default export */ const library_lock = (lock_lock);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-lock/modal.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -59133,7 +59098,6 @@ function isEmptyString(testString) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-rename/modal.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -59432,11 +59396,9 @@ function BlockParentSelectorMenuItem({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-settings-menu/block-settings-dropdown.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
-
 
 
 
@@ -59468,17 +59430,30 @@ function CopyMenuItem({
   onCopy,
   label,
   shortcut,
-  eventType = 'copy'
+  eventType = 'copy',
+  __experimentalUpdateSelection: updateSelection = false
 }) {
   const {
     getBlocksByClientId
   } = (0,external_wp_data_namespaceObject.useSelect)(store);
+  const {
+    removeBlocks
+  } = (0,external_wp_data_namespaceObject.useDispatch)(store);
   const notifyCopy = useNotifyCopy();
   const ref = (0,external_wp_compose_namespaceObject.useCopyToClipboard)(() => (0,external_wp_blocks_namespaceObject.serialize)(getBlocksByClientId(clientIds)), () => {
-    if (onCopy && eventType === 'copy') {
-      onCopy();
+    switch (eventType) {
+      case 'copy':
+      case 'copyStyles':
+        onCopy();
+        notifyCopy(eventType, clientIds);
+        break;
+      case 'cut':
+        notifyCopy(eventType, clientIds);
+        removeBlocks(clientIds, updateSelection);
+        break;
+      default:
+        break;
     }
-    notifyCopy(eventType, clientIds);
   });
   const copyMenuItemLabel = label ? label : (0,external_wp_i18n_namespaceObject.__)('Copy');
   return /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.MenuItem, {
@@ -59541,6 +59516,8 @@ function BlockSettingsDropdown({
       getShortcutRepresentation
     } = select(external_wp_keyboardShortcuts_namespaceObject.store);
     return {
+      copy: getShortcutRepresentation('core/block-editor/copy'),
+      cut: getShortcutRepresentation('core/block-editor/cut'),
       duplicate: getShortcutRepresentation('core/block-editor/duplicate'),
       remove: getShortcutRepresentation('core/block-editor/remove'),
       insertAfter: getShortcutRepresentation('core/block-editor/insert-after'),
@@ -59641,7 +59618,13 @@ function BlockSettingsDropdown({
             }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(CopyMenuItem, {
               clientIds: clientIds,
               onCopy: onCopy,
-              shortcut: external_wp_keycodes_namespaceObject.displayShortcut.primary('c')
+              shortcut: shortcuts.copy
+            }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(CopyMenuItem, {
+              clientIds: clientIds,
+              label: (0,external_wp_i18n_namespaceObject.__)('Cut'),
+              eventType: "cut",
+              shortcut: shortcuts.cut,
+              __experimentalUpdateSelection: !__experimentalSelectBlock
             }), canDuplicate && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.MenuItem, {
               onClick: (0,external_wp_compose_namespaceObject.pipe)(onClose, onDuplicate, updateSelectionAfterDuplicate),
               shortcut: shortcuts.duplicate,
@@ -59855,7 +59838,6 @@ const grid_grid = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(
 /* harmony default export */ const library_grid = (grid_grid);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/convert-to-group-buttons/toolbar.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -60010,7 +59992,6 @@ const __unstableBlockNameContext = (0,external_wp_element_namespaceObject.create
 /* harmony default export */ const block_name_context = (__unstableBlockNameContext);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/navigable-toolbar/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -60265,7 +60246,6 @@ function useHasBlockToolbar() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-toolbar/change-design.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -60476,7 +60456,6 @@ function SwitchSectionStyle({
 /* harmony default export */ const switch_section_style = (SwitchSectionStyle);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-toolbar/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -60773,7 +60752,7 @@ function BlockToolbarPopover({
     contentElement: __unstableContentRef?.current,
     clientId: clientIdToPositionOver
   });
-  return !isTyping && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(block_popover, {
+  return !isTyping && /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(PrivateBlockPopover, {
     clientId: clientIdToPositionOver,
     bottomClientId: lastClientId,
     className: dist_clsx('block-editor-block-list__block-popover', {
@@ -60781,6 +60760,7 @@ function BlockToolbarPopover({
     }),
     resize: false,
     ...popoverProps,
+    __unstableContentRef: __unstableContentRef,
     children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(PrivateBlockToolbar
     // If the toolbar is being shown because of being forced
     // it should focus the toolbar right after the mount.
@@ -61203,7 +61183,6 @@ const trash = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(exte
 /* harmony default export */ const library_trash = (trash);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/use-block-commands/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -62081,7 +62060,6 @@ function useListViewImages({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/block-select-button.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -62303,7 +62281,6 @@ const ListViewBlockContents = (0,external_wp_element_namespaceObject.forwardRef)
 /* harmony default export */ const block_contents = (ListViewBlockContents);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/utils.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -62478,7 +62455,6 @@ function getDragDisplacementValues({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/block.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -63008,7 +62984,6 @@ function ListViewBlock({
 /* harmony default export */ const list_view_block = ((0,external_wp_element_namespaceObject.memo)(ListViewBlock));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/branch.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -63471,7 +63446,6 @@ function ListViewDropIndicatorPreview({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/use-block-selection.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -63592,7 +63566,6 @@ function useBlockSelection() {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/use-list-view-block-indexes.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -63688,7 +63661,6 @@ function useListViewCollapseItems({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/use-list-view-drop-zone.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -64178,7 +64150,6 @@ function useListViewExpandSelectedItem({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/use-clipboard-handler.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -64334,7 +64305,6 @@ function use_clipboard_handler_useClipboardHandler({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/list-view/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -64778,7 +64748,6 @@ function BlockStylesPreviewPanel({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-styles/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -65032,7 +65001,6 @@ function HeadingLevelIcon({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-heading-level-dropdown/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -65117,7 +65085,6 @@ const layout_layout = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.j
 /* harmony default export */ const library_layout = (layout_layout);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-variation-picker/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -65271,7 +65238,6 @@ const SetupToolbar = ({
 /* harmony default export */ const setup_toolbar = (SetupToolbar);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-pattern-setup/use-patterns-setup.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -65298,7 +65264,6 @@ function usePatternsSetup(clientId, blockName, filterPatternsFn) {
 /* harmony default export */ const use_patterns_setup = (usePatternsSetup);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-pattern-setup/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -65472,7 +65437,6 @@ const BlockPatternSetup = ({
 /* harmony default export */ const block_pattern_setup = (BlockPatternSetup);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-variation-transforms/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -65719,7 +65683,6 @@ function ColorPaletteControl({
 ;// external ["wp","date"]
 const external_wp_date_namespaceObject = window["wp"]["date"];
 ;// ./node_modules/@wordpress/block-editor/build-module/components/date-format-picker/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -65843,7 +65806,6 @@ function NonDefaultControls({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/colors-gradients/dropdown.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -65917,7 +65879,7 @@ const dropdown_LabeledColorIndicator = ({
 // Renders a color dropdown's toggle as an `Item` if it is within an `ItemGroup`
 // or as a `Button` if it isn't e.g. the controls are being rendered in
 // a `ToolsPanel`.
-const renderToggle = settings => ({
+const dropdown_renderToggle = settings => ({
   onToggle,
   isOpen
 }) => {
@@ -66033,7 +65995,7 @@ function ColorGradientSettingsDropdown({
         children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.Dropdown, {
           popoverProps: popoverProps,
           className: "block-editor-tools-panel-color-gradient-settings__dropdown",
-          renderToggle: renderToggle(toggleSettings),
+          renderToggle: dropdown_renderToggle(toggleSettings),
           renderContent: () => /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)(external_wp_components_namespaceObject.__experimentalDropdownContentWrapper, {
             paddingSize: "none",
             children: /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
@@ -66050,7 +66012,6 @@ function ColorGradientSettingsDropdown({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/colors-gradients/panel-color-gradient-settings.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -66418,7 +66379,6 @@ function ImageEditingProvider({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/image-editor/aspect-ratio-dropdown.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -66506,7 +66466,7 @@ function AspectRatioDropdown({
         {
           slug: 'original',
           name: (0,external_wp_i18n_namespaceObject.__)('Original'),
-          aspect: defaultAspect
+          ratio: defaultAspect
         }, ...(showDefaultRatios ? defaultRatios.map(presetRatioAsNumber).filter(({
           ratio
         }) => ratio === 1) : [])]
@@ -68467,7 +68427,6 @@ URLPopover.LinkViewer = LinkViewer;
 /* harmony default export */ const url_popover = (URLPopover);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/media-placeholder/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -68675,7 +68634,8 @@ function MediaPlaceholder({
       allowedTypes,
       filesList: files,
       onFileChange: setMedia,
-      onError
+      onError,
+      multiple
     });
   };
   async function handleBlocksDrop(event) {
@@ -68906,7 +68866,6 @@ function MediaPlaceholder({
 /* harmony default export */ const media_placeholder = ((0,external_wp_components_namespaceObject.withFilters)('editor.MediaPlaceholder')(MediaPlaceholder));
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/panel-color-settings/index.js
-/* wp:polyfill */
 /**
  * Internal dependencies
  */
@@ -68941,7 +68900,6 @@ const PanelColorSettings = ({
 /* harmony default export */ const panel_color_settings = (PanelColorSettings);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/format-toolbar/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -69098,7 +69056,6 @@ function useMarkPersistent({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/use-format-types.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -69225,7 +69182,6 @@ function useFormatTypes({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/event-listeners/before-input-rules.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -69335,7 +69291,6 @@ function preventEventDiscovery(value) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/event-listeners/input-rules.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -69649,7 +69604,6 @@ function createLinkInParagraph(url, onReplace) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/event-listeners/paste-handler.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -69782,7 +69736,9 @@ function createLinkInParagraph(url, onReplace) {
   function onKeyDown(event) {
     const {
       keyCode,
-      shiftKey
+      shiftKey,
+      ctrlKey,
+      metaKey
     } = event;
     if (event.defaultPrevented) {
       return;
@@ -69806,8 +69762,8 @@ function createLinkInParagraph(url, onReplace) {
         return;
       }
 
-      // Exclude shift+backspace as they are shortcuts for deleting blocks.
-      if (shiftKey) {
+      // Exclude (command|ctrl)+shift+backspace as they are shortcuts for deleting blocks.
+      if (shiftKey && (ctrlKey || metaKey)) {
         return;
       }
       if (onMerge) {
@@ -69944,7 +69900,6 @@ function createLinkInParagraph(url, onReplace) {
 });
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/event-listeners/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -69984,7 +69939,6 @@ function useEventListeners(props) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/format-edit.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -70107,7 +70061,6 @@ function Content({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/multiline.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -70268,7 +70221,6 @@ function withDeprecations(Component) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/rich-text/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -70874,7 +70826,6 @@ function ResponsiveBlockControlLabel({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/responsive-block-control/index.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -71132,7 +71083,7 @@ function ToolSelector(props, ref) {
         })
       }), /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx)("div", {
         className: "block-editor-tool-selector__help",
-        children: (0,external_wp_i18n_namespaceObject.__)('Tools provide different sets of interactions for blocks. Toggle between simplified content tools (Write) and advanced visual editing tools (Design).')
+        children: (0,external_wp_i18n_namespaceObject.__)('Tools provide different sets of interactions for blocks. Choose between simplified content tools (Write) and advanced visual editing tools (Design).')
       })]
     })
   });
@@ -71281,7 +71232,6 @@ const image_image = /*#__PURE__*/(0,external_ReactJSXRuntime_namespaceObject.jsx
 /* harmony default export */ const library_image = (image_image);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/url-popover/image-url-input-ui.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -71987,7 +71937,6 @@ const useIsListViewTabDisabled = blockName => {
 /* harmony default export */ const use_is_list_view_tab_disabled = (useIsListViewTabDisabled);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inspector-controls-tabs/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -72183,7 +72132,6 @@ function useBlockInspectorAnimationSettings(blockType) {
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-quick-navigation/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -72263,7 +72211,6 @@ function BlockQuickNavigationItem({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-inspector/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -72960,7 +72907,6 @@ const DeprecatedExperimentalUseHasRecursion = (...args) => {
 };
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/inspector-popover-header/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -73513,7 +73459,6 @@ function memize(fn, options) {
 
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/global-styles/get-global-styles-changes.js
-/* wp:polyfill */
 /**
  * External dependencies
  */
@@ -73869,7 +73814,6 @@ function ResizableBoxPopover({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-manager/checklist.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -73903,7 +73847,6 @@ function BlockTypesChecklist({
 /* harmony default export */ const checklist = (BlockTypesChecklist);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-manager/category.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -73976,7 +73919,6 @@ function BlockManagerCategory({
 /* harmony default export */ const block_manager_category = (BlockManagerCategory);
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/block-manager/index.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
@@ -74147,7 +74089,6 @@ function BlockRemovalWarningModal({
 }
 
 ;// ./node_modules/@wordpress/block-editor/build-module/components/dimensions-tool/scale-tool.js
-/* wp:polyfill */
 /**
  * WordPress dependencies
  */
