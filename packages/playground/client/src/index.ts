@@ -31,6 +31,7 @@ import { consumeAPI } from '@php-wasm/web';
 import { ProgressTracker } from '@php-wasm/progress';
 import type { MountDescriptor, PlaygroundClient } from '@wp-playground/remote';
 import { collectPhpLogs, logger } from '@php-wasm/logger';
+import { additionalRemoteOrigins } from './additional-remote-origins';
 
 export interface StartPlaygroundOptions {
 	iframe: HTMLIFrameElement;
@@ -196,6 +197,7 @@ const validRemoteOrigins = [
 	'https://localhost',
 	'http://127.0.0.1',
 	'https://127.0.0.1',
+	...additionalRemoteOrigins,
 ];
 /**
  * Assert that the remote origin is likely compatible with this client library.
