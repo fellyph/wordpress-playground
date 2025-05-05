@@ -10,6 +10,9 @@ class PluginDownloader
 
 	public const PLUGINS = 'plugins';
 	public const THEMES = 'theme';
+	// List of allow-listed GitHub organizations. Intentionally lowercased
+	// for a case-insensitive check later on.
+	public const ALLOWED_ORGS = ['wordpress', 'automattic', 'woocommerce'];
 
 	public function __construct($githubToken)
 	{
@@ -275,53 +278,10 @@ try {
 	} else if (isset($_GET['theme'])) {
 		$downloader->streamFromDirectory($_GET['theme'], PluginDownloader::THEMES);
 	} else if (isset($_GET['org']) && isset($_GET['repo']) && isset($_GET['workflow']) && isset($_GET['pr']) && isset($_GET['artifact'])) {
-		$allowedInputs = [
-			[
-				'org' => 'WordPress',
-				'repo' => 'gutenberg',
-				'workflow' => 'Build Gutenberg Plugin Zip',
-				'artifact' => '#gutenberg-plugin#'
-			],
-			[
-				'org' => 'woocommerce',
-				'repo' => 'woocommerce',
-				'workflow' => 'Build Live Branch',
-				'artifact' => '#plugins#'
-			],
-			[
-				'org' => 'WordPress',
-				'repo' => 'wordpress-develop',
-				'workflow' => 'Test Build Processes',
-				'artifact' => '#wordpress-build-\d+#'
-			],
-			[
-				'org' => 'Automattic',
-				'repo' => 'sensei',
-				'workflow' => 'Plugin Build',
-				'artifact' => '#sensei-lms-\w+#'
-			],
-			[
-				'org' => 'Automattic',
-				'repo' => 'remote-data-blocks',
-				'workflow' => 'Build Live Branch',
-				'artifact' => '#remote-data-blocks#'
-			],
-		];
-		$allowed = false;
-		foreach ($allowedInputs as $allowedInput) {
-			if (
-				$_GET['org'] === $allowedInput['org'] &&
-				$_GET['repo'] === $allowedInput['repo'] &&
-				$_GET['workflow'] === $allowedInput['workflow'] &&
-				preg_match($allowedInput['artifact'], $_GET['artifact'])
-			) {
-				$allowed = true;
-				break;
-			}
-		}
-		if (!$allowed) {
-			header('HTTP/1.1 400 Invalid request');
-			die('Invalid request');
+		// Don't reveal the allowed orgs to the client, just give an error.
+		// Lowercase the org name to make the check case-insensitive.
+		if (! in_array(strtolower($_GET['org']), PluginDownloader::ALLOWED_ORGS, true)) {
+			throw new ApiException('Invalid org. This organization is not allowed.');
 		}
 		$downloader->streamFromGithubPR(
 			$_GET['org'],
@@ -331,9 +291,15 @@ try {
 			$_GET['artifact']
 		);
 	} else if (isset($_GET['repo']) && isset($_GET['name'])) {
-		// Only allow downloads from the block-interactivity-experiments repo for now.
-		if ($_GET['repo'] !== 'WordPress/block-interactivity-experiments') {
-			throw new ApiException('Invalid repo. Only "WordPress/block-interactivity-experiments" is allowed.');
+		// Verify repo string contains org/repo format
+		$parts = explode('/', $_GET['repo']);
+		if (count($parts) !== 2) {
+			throw new ApiException('Invalid repo format. Expected "organization/repository".');
+		}
+
+		// Verify org is allowed, and lowercase it to make the check case-insensitive.
+		if (!in_array(strtolower($parts[0]), PluginDownloader::ALLOWED_ORGS, true)) {
+			throw new ApiException('Invalid repo. Organization not allowed.');
 		}
 
 		$downloader->streamFromGithubReleases($_GET['repo'], $_GET['name']);
