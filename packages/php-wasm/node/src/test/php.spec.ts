@@ -1833,6 +1833,17 @@ bar1
 			);
 			expect($_SERVER).toHaveProperty('HTTP_X_IS_AJAX', 'true');
 			expect($_SERVER).toHaveProperty('SERVER_PORT', '1235');
+			expect($_SERVER).toHaveProperty('QUERY_STRING', 'a=b');
+		});
+
+		it('Should have an empty QUERY_STRING when the URI has no query string', async () => {
+			const response = await php.run({
+				code: `<?php echo json_encode($_SERVER);`,
+				relativeUri: '/test.php',
+			});
+			const bodyText = new TextDecoder().decode(response.bytes);
+			const $_SERVER = JSON.parse(bodyText);
+			expect($_SERVER).toHaveProperty('QUERY_STRING', '');
 		});
 	});
 
