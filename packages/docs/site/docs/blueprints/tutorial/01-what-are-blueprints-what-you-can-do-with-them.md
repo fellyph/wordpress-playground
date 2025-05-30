@@ -19,16 +19,8 @@ A Blueprint might look something like this:
 ```json
 {
 	"plugins": ["akismet", "gutenberg"],
-	"steps": [
-		{
-			"step": "installTheme",
-			"themeData": {
-				"resource": "wordpress.org/themes",
-				"slug": "twentynineteen"
-			}
-		}
-	],
-	"siteOptions": {
+	"themes": ["twentynineteen"],
+	"settings": {
 		"blogname": "My Blog",
 		"blogdescription": "Just another WordPress site"
 	},
