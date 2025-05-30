@@ -164,7 +164,7 @@ jobs:
                   path: packages/playground/website/playwright/e2e/deployment.spec.ts-snapshots/
                   if-no-files-found: ignore
             - name: Delete playwright-dist artifact
-              uses: geekyeggo/delete-artifact@v2
+              uses: geekyeggo/delete-artifact@v5
               with:
                   name: playwright-dist
     test-built-npm-packages:
