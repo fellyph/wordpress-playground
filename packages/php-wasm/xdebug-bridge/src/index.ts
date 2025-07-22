@@ -1,1 +1,1 @@
-export * from './xdebug-bridge'; 
+export * from './xdebug-bridge';
