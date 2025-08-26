@@ -207,11 +207,10 @@ export async function parseOptionsAndRunCLI() {
 				type: 'boolean',
 				default: false,
 			})
-			// TODO: Should we make this a hidden flag?
 			.option('experimental-multi-worker', {
 				describe:
-					'Enable experimental multi-worker support which requires JSPI ' +
-					'and a /wordpress directory backed by a real filesystem. ' +
+					'Enable experimental multi-worker support which requires ' +
+					'a /wordpress directory backed by a real filesystem. ' +
 					'Pass a positive number to specify the number of workers to use. ' +
 					'Otherwise, default to the number of CPUs minus 1.',
 				type: 'number',
@@ -221,6 +220,14 @@ export async function parseOptionsAndRunCLI() {
 				describe: 'Use the experimental Blueprint V2 runner.',
 				type: 'boolean',
 				default: false,
+				// Remove the "hidden" flag once Blueprint V2 is fully supported
+				hidden: true,
+			})
+			.option('mode', {
+				describe:
+					'Blueprints v2 runner mode to use. This option is required when using the --experimental-blueprints-v2-runner flag with a blueprint.',
+				type: 'string',
+				choices: ['create-new-site', 'apply-to-existing-site'],
 				// Remove the "hidden" flag once Blueprint V2 is fully supported
 				hidden: true,
 			})
@@ -275,6 +282,53 @@ export async function parseOptionsAndRunCLI() {
 						);
 					}
 				}
+
+				if (args['experimental-blueprints-v2-runner'] === true) {
+					if (args['mode'] !== undefined) {
+						if ('skip-wordpress-setup' in args) {
+							throw new Error(
+								'The --skipWordPressSetup option cannot be used with the --mode option. Use one or the other.'
+							);
+						}
+						if ('skip-sqlite-setup' in args) {
+							throw new Error(
+								'The --skipSqliteSetup option is not supported in Blueprint V2 mode.'
+							);
+						}
+						if (args['auto-mount'] !== undefined) {
+							throw new Error(
+								'The --mode option cannot be used with --auto-mount because --auto-mount automatically sets the mode.'
+							);
+						}
+					} else {
+						// Support the legacy v1 runner options
+						if (args['skip-wordpress-setup'] === true) {
+							args['mode'] = 'apply-to-existing-site';
+						} else {
+							args['mode'] = 'create-new-site';
+						}
+					}
+
+					// Support the legacy v1 runner options
+					const allow = (args['allow'] as string[]) || [];
+
+					if (args['followSymlinks'] === true) {
+						allow.push('follow-symlinks');
+					}
+
+					if (args['blueprint-may-read-adjacent-files'] === true) {
+						allow.push('read-local-fs');
+					}
+
+					args['allow'] = allow;
+				} else {
+					if (args['mode'] !== undefined) {
+						throw new Error(
+							'The --mode option requires the --experimentalBlueprintsV2Runner flag.'
+						);
+					}
+				}
+
 				return true;
 			});
 
@@ -350,8 +404,10 @@ export interface RunCLIArgs {
 	followSymlinks?: boolean;
 	'blueprint-may-read-adjacent-files'?: boolean;
 
-	// --------- Blueprint V2 args (not available via CLI yet) -----------
+	// --------- Blueprint V2 args -----------
 	mode?: 'mount-only' | 'create-new-site' | 'apply-to-existing-site';
+
+	// --------- Blueprint V2 args (not available via CLI yet) -----------
 	'db-engine'?: 'sqlite' | 'mysql';
 	'db-host'?: string;
 	'db-user'?: string;
