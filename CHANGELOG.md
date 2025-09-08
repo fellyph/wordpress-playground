@@ -4,6 +4,26 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v2.0.18] (2025-09-08) 
+
+### Documentation
+
+- Added Gujarati Translation for Code.md File. ([#2606](https://github.com/WordPress/wordpress-playground/pull/2606))
+- Tagalog translations of Blueprints -&gt; Blueprint Data Format. ([#2609](https://github.com/WordPress/wordpress-playground/pull/2609))
+- [Translations] Adding local environment section to pt-BR. ([#2572](https://github.com/WordPress/wordpress-playground/pull/2572))
+
+### Bug Fixes
+
+- Fixing header from Gujarati translation. ([#2614](https://github.com/WordPress/wordpress-playground/pull/2614))
+- [Xdebug Bridge] Fix create hash error in xdebug bridge. ([#2612](https://github.com/WordPress/wordpress-playground/pull/2612))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@fellyph @mho22 @rollybueno @shail-mehta
+
+
 ## [v2.0.17] (2025-09-08) 
 
 ### Documentation
