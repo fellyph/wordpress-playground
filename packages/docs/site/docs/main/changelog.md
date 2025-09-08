@@ -9,6 +9,24 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v2.0.17] (2025-09-08) 
+
+### Documentation
+
+- Add Japanese translations to Local Development. ([#2604](https://github.com/WordPress/wordpress-playground/pull/2604))
+
+### Various
+
+- Added Gujarati Translation for Blueprints Tutorials Index.md file. ([#2607](https://github.com/WordPress/wordpress-playground/pull/2607))
+- Added Gujarati Translation for How to Run Blueprints. ([#2611](https://github.com/WordPress/wordpress-playground/pull/2611))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@shail-mehta @shimotmk
+
+
 ## [v2.0.16] (2025-09-04) 
 
 ### Enhancements
