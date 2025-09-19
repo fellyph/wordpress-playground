@@ -9,6 +9,71 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.0] (2025-09-19) 
+
+### **Breaking Changes**
+
+
+#### Blueprints
+
+- [Blueprints] Rename Blueprints v1 types, add Blueprint v2 types. ([#2648](https://github.com/WordPress/wordpress-playground/pull/2648))
+
+### Blueprints
+
+- Move Blueprints v1-specific files to v1 subdirectory. ([#2644](https://github.com/WordPress/wordpress-playground/pull/2644))
+- Rename BlueprintDeclaration to BlueprintV1Declaration. ([#2645](https://github.com/WordPress/wordpress-playground/pull/2645))
+- V1] Use the wordpress-importer plugin for the importWxr step. ([#2640](https://github.com/WordPress/wordpress-playground/pull/2640))
+
+### Documentation
+
+- [i18n] Added Gujarati Translation for 01 What are Blueprints and What you can do with them File. ([#2617](https://github.com/WordPress/wordpress-playground/pull/2617))
+- [i18n] Added Gujarati Translation for Local Development Intro.md file. ([#2623](https://github.com/WordPress/wordpress-playground/pull/2623))
+- [i18n] Tagalog translations for using blueprints page. ([#2628](https://github.com/WordPress/wordpress-playground/pull/2628))
+- [i18n] Tagalog translations of API Consistency. ([#2629](https://github.com/WordPress/wordpress-playground/pull/2629))
+- [i18n] Tagalog version of Blueprints/Steps/Shorthands. ([#2630](https://github.com/WordPress/wordpress-playground/pull/2630))
+
+### Experiments
+
+
+#### PHP WebAssembly
+
+- Playground CLI: Mount /wordpress, /internal, and /tmp dirs within real temporary dir. ([#2446](https://github.com/WordPress/wordpress-playground/pull/2446))
+
+### PHP WebAssembly
+
+- Function mismatch fix in GD jpeg extension for PHP below 8.0. ([#2634](https://github.com/WordPress/wordpress-playground/pull/2634))
+- [PHP] Add unit tests for nested mounts. ([#2639](https://github.com/WordPress/wordpress-playground/pull/2639))
+
+### Website
+
+- [WordPress] Separate bootWordPress() from bootRequestHandler(). ([#2650](https://github.com/WordPress/wordpress-playground/pull/2650))
+
+#### Blueprints
+
+- [Blueprints] Log step names without parsing. ([#2649](https://github.com/WordPress/wordpress-playground/pull/2649))
+
+### Bug Fixes
+
+- [Xdebug Bridge] Fix issue if non existent file is read. ([#2625](https://github.com/WordPress/wordpress-playground/pull/2625))
+
+### Reliability
+
+- Fix Playground CLI boot from native dirs on Windows. ([#2642](https://github.com/WordPress/wordpress-playground/pull/2642))
+
+### Various
+
+- Keep wordpress-importer.zip for older versions of Playground. ([#2647](https://github.com/WordPress/wordpress-playground/pull/2647))
+- Update build.md. ([#2638](https://github.com/WordPress/wordpress-playground/pull/2638))
+- [Documentation] Adding troubleshooting sections for WP-CLI database connections. ([#2333](https://github.com/WordPress/wordpress-playground/pull/2333))
+- [i18n] Add Japanese translations to wp-now NPM package. ([#2615](https://github.com/WordPress/wordpress-playground/pull/2615))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @akkspros @brandonpayton @fellyph @mho22 @rollybueno @shail-mehta @shimotmk
+
+
 ## [v2.0.22] (2025-09-16) 
 
 ### Enhancements
