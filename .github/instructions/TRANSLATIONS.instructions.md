@@ -1,87 +1,110 @@
-# Translation Instructions for WordPress Playground
+# Contributor Language Guidelines for WordPress Playground Documentation
 
-## Project Overview
+## Content Language Requirements
 
-WordPress Playground is a web-based tool for experimenting with WordPress. The documentation is built with Docusaurus and supports internationalization (i18n) with translations stored in `packages/docs/site/i18n/` organized by language codes.
+**IMPORTANT**: Only English content should be contributed to the base documentation directory.
 
-## File Structure for Translations
+### Directory Structure Rules
 
-- Base documentation: `packages/docs/site/docs/`
-- Translations directory: `packages/docs/site/i18n/{LANGUAGE_CODE}/docusaurus-plugin-content-docs/current/`
-- Configuration: `packages/docs/site/docusaurus.config.js`
-- Assets: `packages/docs/site/static/img/`
+- ✅ **English content ONLY**: `packages/docs/site/docs/`
+- ❌ **Non-English content**: Must NOT be placed in `packages/docs/site/docs/`
+- ✅ **Translated content**: `packages/docs/site/i18n/{LANGUAGE_CODE}/docusaurus-plugin-content-docs/current/`
 
-## Translation Production Guidelines
+### Before Contributing
 
-When creating or updating translations:
+1. **Check your content language**: Is your contribution in English?
+   - **Yes** → Place in `packages/docs/site/docs/`
+   - **No** → Place in `packages/docs/site/i18n/{LANGUAGE_CODE}/docusaurus-plugin-content-docs/current/`
 
-1. **File Structure**: Always mirror the exact directory structure from the original English docs
-   - Original: `docs/main/intro.md`
-   - Translation: `i18n/es/docusaurus-plugin-content-docs/current/main/intro.md`
+2. **Find the correct language code**:
+   - Spanish: `es`
+   - French: `fr`
+   - Portuguese: `pt`
+   - German: `de`
+   - Chinese: `zh`
+   - Japanese: `ja`
+   - [See full list of language codes](https://docusaurus.io/docs/i18n/introduction#locale-ids)
 
-2. **Content Format**: Include original English content as HTML comments above translations
-   ```markdown
-   <!--
-   Original English content here for reviewer reference
-   -->
-   
-   Translated content here
+## Translation Submission Process
+
+### For New Translations
+
+When contributing content in a language other than English:
+
+1. **Mirror the directory structure** exactly:
+   ```
+   Original:    docs/main/intro.md
+   Translation: i18n/es/docusaurus-plugin-content-docs/current/main/intro.md
    ```
 
-3. **Naming Conventions**: 
-   - Use standard language codes (es, fr, pt, etc.)
-   - Maintain original file names exactly
-   - Keep `.md` extensions
+2. **Include reference comments** at the top of translated files:
+   ```markdown
+   <!--
+   Original English content for reviewer reference:
+   [Include the original English text here]
+   -->
+   
+   [Your translated content here]
+   ```
 
-4. **PR Guidelines**:
-   - Add `[i18n]` prefix to PR titles
-   - Submit small batches of translated pages
-   - Reference tracking issues when they exist
+3. **Use the `[i18n]` prefix** in your PR title:
+   ```
+   [i18n] Add Spanish translation for Getting Started guide
+   ```
 
-## Translation Review Standards
+### Translation Requirements
 
-When reviewing translation PRs:
+- **Complete sections**: Translate entire pages or logical sections
+- **Preserve formatting**: Keep all markdown syntax and structure
+- **Maintain accuracy**: Ensure technical terms are correctly translated
+- **Test locally**: Use `npm run dev -- --locale {LANGUAGE_CODE}` to verify
 
-1. **Structure Verification**:
-   - Confirm file paths match original structure exactly
-   - Check that frontmatter and metadata are preserved
-   - Verify links and references work correctly
+### File Naming and Structure
 
-2. **Content Matching**:
-   - Verify translated content corresponds to the original English sections
-   - Check that all paragraphs, headings, and sections are translated
-   - Ensure no content is missing or added unexpectedly
-   - Original English text in HTML comments is for reference only - do not review comment content
+- Keep original file names unchanged
+- Maintain `.md` file extensions
+- Preserve frontmatter and metadata
+- Mirror exact folder hierarchy from English docs
 
-3. **Translation Quality**:
-   - Translation should maintain technical accuracy
-   - UI elements and navigation terms should be consistent
-   - Code blocks and examples remain functional
-   - Markdown formatting preserved in translated content
+## Quality Standards
 
-4. **Completeness Check**:
-   - All sections from original document are present in translation
-   - Image paths and alt text appropriately handled
-   - Links and cross-references work correctly
+### Content Completeness
+- All paragraphs and sections from the original must be translated
+- No content should be missing or unexpectedly added
+- Code examples should remain functional
+- Links and cross-references must work correctly
 
-## Configuration Updates
+### Technical Accuracy
+- WordPress and technical terminology should be consistent
+- UI elements should use standard translations
+- Command-line examples should remain in English unless specifically localizing
 
-When adding new languages to the language switcher:
+### Review Process
+- Translations will be reviewed for completeness and accuracy
+- File structure and paths will be verified
+- Links and formatting will be tested
 
-- Only add languages with significant documentation coverage (entire "Documentation" hub)
-- Update `docusaurus.config.js` with new locale configuration
-- Generate UI translation files using `npm run write-translations -- --locale <LANGUAGE_CODE>`
+## Common Mistakes to Avoid
 
-## Testing Commands
+❌ **Don't**: Place non-English content in `packages/docs/site/docs/`
+❌ **Don't**: Change file names or extensions when translating
+❌ **Don't**: Skip sections or add extra content
+❌ **Don't**: Translate code comments unless necessary for understanding
 
-From `packages/docs/site` directory:
-- Test specific language: `npm run dev -- --locale <LANGUAGE_CODE>`
-- Build all languages: `npm run build:docs`
-- Generate translation files: `npm run write-translations -- --locale <LANGUAGE_CODE>`
+✅ **Do**: Follow the exact directory structure
+✅ **Do**: Include original English text in HTML comments for reference
+✅ **Do**: Preserve all markdown formatting and links
+✅ **Do**: Test your translation locally before submitting
 
-## Common Patterns
+## Getting Help
 
-- Preserve all markdown syntax and formatting
-- Keep code examples in original language unless specifically localizing
-- Maintain consistent terminology across translation files
-- Follow WordPress translation standards and conventions
+If you're unsure about:
+- Language codes or directory structure
+- Translation standards for technical terms
+- File organization for your contribution
+
+Please ask in the issue or discussion thread before submitting your PR.
+
+---
+
+**Remember**: English content goes to `docs/`, all other languages go to `i18n/{LANGUAGE_CODE}/docusaurus-plugin-content-docs/current/`
