@@ -1,0 +1,196 @@
+name: Translation Sync Trigger
+
+on:
+  pull_request:
+    types: [closed]
+    paths:
+      - 'packages/docs/site/docs/**/*.md'
+    branches:
+      - trunk
+      - main
+
+jobs:
+  detect-documentation-changes:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      changed-files: ${{ steps.changes.outputs.files }}
+      has-changes: ${{ steps.changes.outputs.any-changed }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Detect changed documentation files
+        id: changes
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            packages/docs/site/docs/**/*.md
+          json: true
+          escape_json: false
+
+      - name: Display changed files
+        if: steps.changes.outputs.any-changed == 'true'
+        run: |
+          echo "Changed documentation files:"
+          echo '${{ steps.changes.outputs.all_changed_files }}' | jq -r '.[]'
+
+  create-translation-issues:
+    needs: detect-documentation-changes
+    if: needs.detect-documentation-changes.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [pt, es, fr] # Add more language codes as needed
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'packages/docs/site/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd packages/docs/site
+          npm ci
+
+      - name: Check for existing translations
+        id: check-translations
+        run: |
+          CHANGED_FILES='${{ needs.detect-documentation-changes.outputs.changed-files }}'
+          LANGUAGE=${{ matrix.language }}
+          OUTDATED_FILES=()
+          NEW_FILES=()
+          
+          echo "Checking translations for language: $LANGUAGE"
+          
+          for file in $(echo "$CHANGED_FILES" | jq -r '.[]'); do
+            # Convert docs path to translation path
+            RELATIVE_PATH=${file#packages/docs/site/docs/}
+            TRANSLATION_PATH="packages/docs/site/i18n/$LANGUAGE/docusaurus-plugin-content-docs/current/$RELATIVE_PATH"
+            
+            echo "Checking: $TRANSLATION_PATH"
+            
+            if [ -f "$TRANSLATION_PATH" ]; then
+              echo "Translation exists, marking as outdated: $file"
+              OUTDATED_FILES+=("$file")
+            else
+              echo "Translation missing, marking as new: $file"
+              NEW_FILES+=("$file")
+            fi
+          done
+          
+          # Convert arrays to JSON
+          OUTDATED_JSON=$(printf '%s\n' "${OUTDATED_FILES[@]}" | jq -R . | jq -s .)
+          NEW_JSON=$(printf '%s\n' "${NEW_FILES[@]}" | jq -R . | jq -s .)
+          
+          echo "outdated-files=$OUTDATED_JSON" >> $GITHUB_OUTPUT
+          echo "new-files=$NEW_JSON" >> $GITHUB_OUTPUT
+          echo "has-outdated=$([ ${#OUTDATED_FILES[@]} -gt 0 ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has-new=$([ ${#NEW_FILES[@]} -gt 0 ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+
+      - name: Get language display name
+        id: language-info
+        run: |
+          case "${{ matrix.language }}" in
+            pt) echo "display-name=Portuguese (Brazilian)" >> $GITHUB_OUTPUT ;;
+            es) echo "display-name=Spanish" >> $GITHUB_OUTPUT ;;
+            fr) echo "display-name=French" >> $GITHUB_OUTPUT ;;
+            *) echo "display-name=${{ matrix.language }}" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Create translation sync issue
+        if: steps.check-translations.outputs.has-outdated == 'true' || steps.check-translations.outputs.has-new == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const language = '${{ matrix.language }}';
+            const languageDisplay = '${{ steps.language-info.outputs.display-name }}';
+            const outdatedFiles = ${{ steps.check-translations.outputs.outdated-files }};
+            const newFiles = ${{ steps.check-translations.outputs.new-files }};
+            const prNumber = context.payload.pull_request.number;
+            const prTitle = context.payload.pull_request.title;
+            
+            let issueBody = `## Translation Update Required\n\n`;
+            issueBody += `**Language:** ${languageDisplay} (\`${language}\`)\n`;
+            issueBody += `**Triggered by:** PR #${prNumber} - ${prTitle}\n`;
+            issueBody += `**Pull Request:** ${context.payload.pull_request.html_url}\n\n`;
+            
+            if (outdatedFiles.length > 0) {
+              issueBody += `### 📝 Translations to Update\n\n`;
+              issueBody += `The following translations need to be updated to match the latest English content:\n\n`;
+              for (const file of outdatedFiles) {
+                const relativePath = file.replace('packages/docs/site/docs/', '');
+                const translationPath = `packages/docs/site/i18n/${language}/docusaurus-plugin-content-docs/current/${relativePath}`;
+                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → [\`${translationPath}\`](${context.payload.repository.html_url}/blob/trunk/${translationPath})\n`;
+              }
+              issueBody += `\n`;
+            }
+            
+            if (newFiles.length > 0) {
+              issueBody += `### ✨ New Translations Needed\n\n`;
+              issueBody += `The following pages need new translations:\n\n`;
+              for (const file of newFiles) {
+                const relativePath = file.replace('packages/docs/site/docs/', '');
+                const translationPath = `packages/docs/site/i18n/${language}/docusaurus-plugin-content-docs/current/${relativePath}`;
+                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → \`${translationPath}\` (new file)\n`;
+              }
+              issueBody += `\n`;
+            }
+            
+            issueBody += `### 📋 Translation Guidelines\n\n`;
+            issueBody += `1. **File Structure**: Ensure translation files mirror the exact directory structure\n`;
+            issueBody += `2. **Content Format**: Include original English content in HTML comments above translations\n`;
+            issueBody += `3. **Testing**: Run \`npm run dev -- --locale ${language}\` from \`packages/docs/site\` to test locally\n`;
+            issueBody += `4. **PR Format**: Use \`[i18n-${language}]\` prefix in PR title\n\n`;
+            
+            issueBody += `### 🔧 Commands\n\n`;
+            issueBody += `\`\`\`bash\n`;
+            issueBody += `# Test the translation\n`;
+            issueBody += `cd packages/docs/site\n`;
+            issueBody += `npm run dev -- --locale ${language}\n\n`;
+            issueBody += `# Build documentation\n`;
+            issueBody += `npm run build:docs\n`;
+            issueBody += `\`\`\`\n\n`;
+            
+            issueBody += `---\n`;
+            issueBody += `*This issue was automatically created by the Translation Sync workflow.*`;
+            
+            const title = `[i18n-${language}] Update ${languageDisplay} translations (PR #${prNumber})`;
+            
+            // Check if similar issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: [`translation-${language}`, 'documentation'],
+              state: 'open'
+            });
+            
+            const similarIssue = existingIssues.data.find(issue => 
+              issue.title.includes(`[i18n-${language}]`) && 
+              issue.body.includes(`PR #${prNumber}`)
+            );
+            
+            if (!similarIssue) {
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: issueBody,
+                labels: [`translation-${language}`, 'documentation', 'help wanted']
+              });
+              
+              console.log(`Created translation issue: ${issue.data.html_url}`);
+            } else {
+              console.log(`Similar issue already exists: ${similarIssue.html_url}`);
+            }
