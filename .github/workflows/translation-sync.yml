@@ -45,6 +45,7 @@ jobs:
       - name: Display changed files
         if: steps.changes.outputs.any_changed == 'true'
         run: |
+          echo '${{ steps.changes.outputs.all_changed_files }}'
           echo "Changed documentation files:"
           echo '${{ steps.changes.outputs.all_changed_files }}' | jq -r '.[]'
 
