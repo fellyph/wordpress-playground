@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        language: [pt, es, fr] # Add more language codes as needed
+        language: [pt, es, pl] # Add more language codes as needed
     
     steps:
       - name: Checkout repository
@@ -104,7 +104,7 @@ jobs:
           case "${{ matrix.language }}" in
             pt) echo "display-name=Portuguese (Brazilian)" >> $GITHUB_OUTPUT ;;
             es) echo "display-name=Spanish" >> $GITHUB_OUTPUT ;;
-            fr) echo "display-name=French" >> $GITHUB_OUTPUT ;;
+            pl) echo "display-name=Polish" >> $GITHUB_OUTPUT ;;
             *) echo "display-name=${{ matrix.language }}" >> $GITHUB_OUTPUT ;;
           esac
 
@@ -151,7 +151,7 @@ jobs:
             issueBody += `### 📋 Translation Guidelines\n\n`;
             issueBody += `1. **File Structure**: Ensure translation files mirror the exact directory structure\n`;
             issueBody += `2. **Content Format**: Include original English content in HTML comments above translations\n`;
-            issueBody += `3. **Testing**: Run \`npm run dev -- --locale ${language}\` from \`packages/docs/site\` to test locally\n`;
+            issueBody += `3. **Testing**: Run \`npm run dev -- --locale ${language}\` plom \`packages/docs/site\` to test locally\n`;
             issueBody += `4. **PR Format**: Use \`[i18n-${language}]\` prefix in PR title\n\n`;
             
             issueBody += `### 🔧 Commands\n\n`;
