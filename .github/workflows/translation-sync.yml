@@ -1,6 +1,7 @@
 name: AI-Powered Translation Sync
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'packages/docs/site/docs/**/*.md'
