@@ -1,13 +1,11 @@
 name: AI-Powered Translation Sync
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     paths:
       - 'packages/docs/site/docs/**/*.md'
     branches:
       - trunk
-      - main
 
 permissions:
   contents: read
@@ -17,7 +15,12 @@ permissions:
 
 jobs:
   detect-documentation-changes:
-    if: github.event.pull_request.merged == true
+    # Only create a translation PR for pushes to trunk
+    # in the WordPress/wordpress-playground repository
+    if: >
+        github.repository == 'WordPress/wordpress-playground' &&
+        github.ref == 'refs/heads/trunk' &&
+        github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       changed-files: ${{ steps.changes.outputs.files }}
