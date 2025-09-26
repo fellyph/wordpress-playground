@@ -1,84 +1,50 @@
 ---
-slug: /contributing/code
-title: Code contributions
-description: A guide for code contributions, covering how to fork the repo, set up a local environment, and submit a pull request.
+স্লাগ: /contributing/coding-standards
+শিরোনাম: কোডিং নীতি
+বর্ণনা: প্লেগ্রাউন্ডের জন্য কোডিং নীতির বিশদ বিবরণ, সহায়ক ত্রুটিগুলোর বার্তা, একটি ন্যূনতম পাবলিক API এবং ব্লুপ্রিন্টের উপর দৃষ্টি প্রদান করে।
 ---
 
-# Code contributions
+# কোডিং নীতি
 
-Like all WordPress projects, Playground uses GitHub to manage code and track issues. The main repository is at [https://github.com/WordPress/wordpress-playground](https://github.com/WordPress/wordpress-playground) and the Playground Tools repository is at [https://github.com/WordPress/playground-tools/](https://github.com/WordPress/playground-tools/).
+## ত্রুটি বার্তা
+একটি ভাল ত্রুটি বার্তা ব্যবহারকারীকে নিম্নলিখিত পদক্ষেপগুলি সম্পর্কে অবহিত করে। প্লেগ্রাউন্ডের [Public APIs](/developers/apis/) দ্বারা প্রদত্ত ত্রুটিগুলিতে কোনও অস্পষ্টতা ডেভেলপারদের সমস্যাগুলি দেখতে উদ্বুদ্ধ করবে।
 
-:::info Contribute to Playground Tools
+উদাহরণস্বরূপ, একটি নেটওয়ার্ক ত্রুটি বিবেচনা করুন - আমরা কি ত্রুটির ধরণটি অনুমান করতে পারি এবং পরবর্তী পদক্ষেপগুলির সংক্ষিপ্তসার সহ একটি প্রাসঙ্গিক বার্তা প্রদর্শন করতে পারি?
 
-This guide includes links to the main repository, but all the steps and options apply for both. If you're interested in the plugins or [local development](/developers/local-development/) tools—start there.
+-   **নেটওয়ার্ক ত্রুটি**: "আপনার ইন্টারনেট সংযোগটি বিকৃত হয়েছে। পৃষ্ঠাটি পুনরায় লোড করার চেষ্টা করুন।"
+-   **৪০৪**: "ফাইলটি খুঁজে পাওয়া যাচ্ছে না".
+-   **৪০৩**: "সার্ভার ফাইলটিতে অ্যাক্সেস ব্লক করেছে".
+-   **CORS**: স্পষ্ট করুন যে এটি একটি ব্রাউজার সুরক্ষা বৈশিষ্ট্য এবং একটি বিস্তারিত ব্যাখ্যার লিঙ্ক যুক্ত করুন (MDN বা অন্য কোনও নির্ভরযোগ্য উৎসে)। ব্যবহারকারীকে তাদের ফাইল অন্য কোথাও সরানোর পরামর্শ দিন, যেমন `raw.githubusercontent.com`, এবং তাদের সার্ভারে CORS হেডার কীভাবে সেট আপ করবেন তা ব্যাখ্যা করে এমন একটি রিসোর্সের লিঙ্ক দিন।
 
-:::
+আমরা কোড ফর্ম্যাটিং এবং লিন্টিং স্বয়ংক্রিয়ভাবে পরিচালনা করি। আরাম করুন, টাইপ করুন এবং মেশিনগুলিকে কাজ করতে দিন।
 
-Browse [the list of open issues](https://github.com/wordpress/wordpress-playground/issues) to find what to work on. The [`Good First Issue`](https://github.com/wordpress/wordpress-playground/issues?q=is%3Aopen+is%3Aissue+label%3A%22Good+First+Issue%22) label is a recommended starting point for first-time contributors.
+## পাবলিক API
 
-Be sure to review the following resources before you begin:
+প্লেগ্রাউন্ডের লক্ষ্য হল সম্ভাব্য সবচেয়ে সংকীর্ণ API স্কোপ রাখা।
 
--   [Coding principles](/contributing/coding-standards)
--   [Architecture](/developers/architecture)
--   [Vision and Philosophy](https://github.com/WordPress/wordpress-playground/issues/472)
--   [WordPress Playground Roadmap](https://github.com/WordPress/wordpress-playground/issues/525)
+পাবলিক API যোগ করা সহজ এবং অপসারণ করা কঠিন। একটি নতুন API প্রবর্তন করতে কেবল একটি PR লাগে, তবে এটি অপসারণ করতে এক হাজার লাগতে পারে, বিশেষ করে যদি অন্যান্য প্রকল্প ইতিমধ্যে এটি ব্যবহার করে থাকে।
 
-## Contribute Pull Requests
+- অপ্রয়োজনীয় ফাংশন, ক্লাস, ধ্রুবক, বা অন্যান্য উপাদান প্রকাশ করবেন না।
 
-[Fork the Playground repository](https://github.com/WordPress/wordpress-playground/fork) and clone it to your local machine. To do that, copy and paste these commands into your terminal:
+## ব্লুপ্রিন্ট
 
-```bash
-git clone -b trunk --single-branch --depth 1 --recurse-submodules
+[ব্লুপ্রিন্ট](/blueprints/getting-started) হল প্লেগ্রাউন্ডের সাথে ইন্টারঅ্যাক্ট করার প্রাথমিক উপায়। এই JSON ফাইলগুলি প্লেগ্রাউন্ড ক্রমানুসারে সম্পাদন করে এমন ধাপগুলির একটি সেট বর্ণনা করে।
 
-# replace `YOUR-GITHUB-USERNAME` with your GitHub username:
-git@github.com:YOUR-GITHUB-USERNAME/wordpress-playground.git
-cd wordpress-playground
-npm install
-```
+### নির্দেশিকা
 
-Create a branch, make changes, and test it locally by running the following command:
+ব্লুপ্রিন্টের ধাপগুলি **সংক্ষিপ্ত এবং কেন্দ্রীভূত** হওয়া উচিত। এগুলি একটি কাজ করা উচিত এবং ভালভাবে করা উচিত।
 
-```bash
-npm run dev
-```
+-   যদি আপনার একটি নতুন ধাপ তৈরি করার প্রয়োজন হয়, তাহলে প্রথমে বিদ্যমান ধাপটি পুনর্নির্মাণের চেষ্টা করুন।
+-   যদি এটি যথেষ্ট না হয়, তাহলে নিশ্চিত করুন যে নতুন ধাপটি একটি নতুন ক্ষমতা প্রদান করে। বিদ্যমান ধাপগুলির কার্যকারিতা প্রতিলিপি করবেন না।
+-   ধরে নিন যে ধাপটি একাধিকবার কল করা হবে।
+-   ধরে নিন এটি একটি নির্দিষ্ট ক্রমে চলবে।
+-   এটি যাচাই করার জন্য ইউনিট পরীক্ষা যোগ করুন।
 
-Playground will open in a new browser tab and refresh automatically with each change.
+ব্লুপ্রিন্টগুলি **স্বজ্ঞাত এবং সরল** হওয়া উচিত।
 
-When your'e ready, commit the changes and submit a Pull Request.
-
-:::info Formatting
-
-We handle code formatting and linting automatically. Relax, type away, and let the machines do the work.
-
-:::
-
-### Running a local Multisite
-
-WordPress Multisite has a few [restrictions when run locally](https://developer.wordpress.org/advanced-administration/multisite/prepare-network/#restrictions). If you plan to test a Multisite network using Playground's `enableMultisite` step, make sure you either change `wp-now`'s default port or set a local test domain running via HTTPS.
-
-To change `wp-now`'s default port to the one supported by WordPress Multisite, run it using the `--port=80` flag:
-
-```bash
-npx @wp-now/wp-now start --port=80
-```
-
-There are a few ways to set up a local test domain, including editing your `hosts` file. If you're unsure how to do that, we suggest installing [Laravel Valet](https://laravel.com/docs/11.x/valet) and then running the following command:
-
-```bash
-valet proxy playground.test http://127.0.0.1:5400 --secure
-```
-
-Your dev server is now available on https://playground.test.
-
-## Debugging
-
-### Use VS Code and Chrome
-
-If you're using VS Code and have Chrome installed, you can debug Playground in the code editor:
-
--   Open the project folder in VS Code.
--   Select Run > Start Debugging from the main menu or press `F5`/`fn`+`F5`.
-
-### Debugging PHP
-
-Playground logs PHP errors in the browser console after every PHP request.
+-   ঐচ্ছিক হতে পারে এমন আর্গুমেন্টের প্রয়োজন নেই।
+-   প্লেইন আর্গুমেন্ট ব্যবহার করুন। উদাহরণস্বরূপ, `path` এর পরিবর্তে `slug`।
+-   ভার্চুয়াল JSON ফাইলগুলিতে কন্সটেন্ট সংজ্ঞায়িত করুন—PHP ফাইলগুলি পরিবর্তন করবেন না।
+-   ব্লুপ্রিন্টের জন্য একটি টাইপস্ক্রিপ্ট টাইপ সংজ্ঞায়িত করুন। এভাবেই প্লেগ্রাউন্ড তার JSON স্কিমা তৈরি করে।
+-   ব্লুপ্রিন্ট ধাপ পরিচালনা করার জন্য একটি ফাংশন লিখুন। আপনার সংজ্ঞায়িত ধরণের আর্গুমেন্ট গ্রহণ করুন।
+-   ডক স্ট্রিংয়ে একটি ব্যবহারের উদাহরণ দিন। এটি স্বয়ংক্রিয়ভাবে ডক্সে প্রতিফলিত হয়।
