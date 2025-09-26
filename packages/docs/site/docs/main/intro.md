@@ -5,7 +5,7 @@ id: introduction
 description: Welcome to the WordPress Playground docs! This page introduces the documentation structure and helps you find your way around.
 ---
 
-# WordPress Playground Docs
+# WordPress Playground Docs NEW
 
 :::info **Looking for the official Playground website?**
 
