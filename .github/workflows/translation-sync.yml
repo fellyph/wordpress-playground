@@ -18,7 +18,7 @@ jobs:
     # Only create a translation PR for pushes to trunk
     # in the WordPress/wordpress-playground repository
     if: >
-        github.repository == 'WordPress/wordpress-playground' &&
+        # github.repository == 'WordPress/wordpress-playground' &&
         github.ref == 'refs/heads/trunk' &&
         github.event_name == 'push'
     runs-on: ubuntu-latest
