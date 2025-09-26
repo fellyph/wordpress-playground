@@ -6,7 +6,7 @@ description: A 5-minute guide to get started with Playground. Learn how to test 
 
 import ThisIsQueryApi from '@site/docs/\_fragments/\_this_is_query_api.md';
 
-# Start using WordPress Playground in 5 min
+# Start using WordPress Playground in 5 minutes
 
 WordPress Playground can help you with any of the following:
 
