@@ -68,12 +68,12 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'packages/docs/site/package-lock.json'
 
@@ -127,7 +127,7 @@ jobs:
                   \"temperature\": 0.3,
                   \"max_tokens\": 500
                 }")
-              
+              echo "AI Response: $AI_RESPONSE"
               # Extract the AI response content
               AI_CONTENT=$(echo "$AI_RESPONSE" | jq -r '.choices[0].message.content // "Error: No AI response"')
               
