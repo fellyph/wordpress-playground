@@ -1,4 +1,4 @@
-name: Translation Sync Trigger
+name: AI-Powered Translation Sync
 
 on:
   pull_request:
@@ -8,6 +8,12 @@ on:
     branches:
       - trunk
       - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  models: read
 
 jobs:
   detect-documentation-changes:
@@ -39,13 +45,22 @@ jobs:
           echo "Changed documentation files:"
           echo '${{ steps.changes.outputs.all_changed_files }}' | jq -r '.[]'
 
-  create-translation-issues:
+  ai-translation-analysis:
     needs: detect-documentation-changes
     if: needs.detect-documentation-changes.outputs.has-changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        language: [pt, es, pl] # Add more language codes as needed
+        language: 
+          - code: pt
+            name: "Portuguese (Brazilian)"
+            instructions: "Translate to Brazilian Portuguese. Use formal tone. Keep technical terms like 'WordPress', 'plugin', 'theme' unchanged. Use 'Painel' for Dashboard, 'Tema' for Theme."
+          - code: es
+            name: "Spanish"
+            instructions: "Translate to Latin American Spanish. Use formal tone. Keep technical terms like 'WordPress', 'plugin', 'theme' unchanged."
+          - code: pl
+            name: "Polish"
+            instructions: "Translate to Polish. Use formal tone. Keep technical terms like 'WordPress', 'plugin', 'theme' unchanged. Use 'Kokpit' for Dashboard, 'Motyw' for Theme, 'Wtyczka' for Plugin."
     
     steps:
       - name: Checkout repository
@@ -63,98 +78,194 @@ jobs:
           cd packages/docs/site
           npm ci
 
-      - name: Check for existing translations
-        id: check-translations
+      - name: Analyze documentation changes with AI
+        id: ai-analysis
         run: |
           CHANGED_FILES='${{ needs.detect-documentation-changes.outputs.changed-files }}'
-          LANGUAGE=${{ matrix.language }}
+          LANGUAGE="${{ matrix.language.code }}"
+          LANGUAGE_NAME="${{ matrix.language.name }}"
+          TRANSLATION_INSTRUCTIONS="${{ matrix.language.instructions }}"
+          
           OUTDATED_FILES=()
           NEW_FILES=()
+          AI_SUMMARIES=()
           
-          echo "Checking translations for language: $LANGUAGE"
+          echo "Analyzing changes for language: $LANGUAGE_NAME"
           
+          # Process each changed file
           for file in $(echo "$CHANGED_FILES" | jq -r '.[]'); do
+            echo "Processing: $file"
+            
             # Convert docs path to translation path
             RELATIVE_PATH=${file#packages/docs/site/docs/}
             TRANSLATION_PATH="packages/docs/site/i18n/$LANGUAGE/docusaurus-plugin-content-docs/current/$RELATIVE_PATH"
             
-            echo "Checking: $TRANSLATION_PATH"
-            
-            if [ -f "$TRANSLATION_PATH" ]; then
-              echo "Translation exists, marking as outdated: $file"
-              OUTDATED_FILES+=("$file")
-            else
-              echo "Translation missing, marking as new: $file"
-              NEW_FILES+=("$file")
+            # Read the file content
+            if [ -f "$file" ]; then
+              CONTENT=$(cat "$file")
+              
+              # Get AI analysis of the content
+              AI_RESPONSE=$(curl -s "https://models.github.ai/inference/chat/completions" \
+                -H "Content-Type: application/json" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -d "{
+                  \"model\": \"openai/gpt-4o-mini\",
+                  \"messages\": [
+                    {
+                      \"role\": \"system\",
+                      \"content\": \"You are a technical documentation analysis assistant. Analyze documentation changes and provide translation guidance. Respond in JSON format with: {\\\"summary\\\": \\\"brief description\\\", \\\"complexity\\\": \\\"low/medium/high\\\", \\\"key_terms\\\": [\\\"list of important terms\\\"], \\\"translation_notes\\\": \\\"specific guidance for translators\\\"}\"
+                    },
+                    {
+                      \"role\": \"user\",
+                      \"content\": \"Analyze this WordPress Playground documentation for translation to $LANGUAGE_NAME. File: $RELATIVE_PATH\\n\\nContent:\\n$CONTENT\"
+                    }
+                  ],
+                  \"temperature\": 0.3,
+                  \"max_tokens\": 500
+                }")
+              
+              # Extract the AI response content
+              AI_CONTENT=$(echo "$AI_RESPONSE" | jq -r '.choices[0].message.content // "Error: No AI response"')
+              
+              if [ -f "$TRANSLATION_PATH" ]; then
+                echo "Translation exists, marking as outdated: $file"
+                OUTDATED_FILES+=("$file")
+              else
+                echo "Translation missing, marking as new: $file"
+                NEW_FILES+=("$file")
+              fi
+              
+              # Store AI analysis
+              AI_SUMMARIES+=("{\"file\": \"$RELATIVE_PATH\", \"analysis\": $AI_CONTENT}")
             fi
           done
           
           # Convert arrays to JSON
           OUTDATED_JSON=$(printf '%s\n' "${OUTDATED_FILES[@]}" | jq -R . | jq -s .)
           NEW_JSON=$(printf '%s\n' "${NEW_FILES[@]}" | jq -R . | jq -s .)
+          AI_SUMMARIES_JSON=$(printf '%s\n' "${AI_SUMMARIES[@]}" | jq -s .)
           
           echo "outdated-files=$OUTDATED_JSON" >> $GITHUB_OUTPUT
           echo "new-files=$NEW_JSON" >> $GITHUB_OUTPUT
+          echo "ai-summaries=$AI_SUMMARIES_JSON" >> $GITHUB_OUTPUT
           echo "has-outdated=$([ ${#OUTDATED_FILES[@]} -gt 0 ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
           echo "has-new=$([ ${#NEW_FILES[@]} -gt 0 ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
 
-      - name: Get language display name
-        id: language-info
+      - name: Generate AI translation suggestions
+        id: ai-suggestions
+        if: steps.ai-analysis.outputs.has-outdated == 'true' || steps.ai-analysis.outputs.has-new == 'true'
         run: |
-          case "${{ matrix.language }}" in
-            pt) echo "display-name=Portuguese (Brazilian)" >> $GITHUB_OUTPUT ;;
-            es) echo "display-name=Spanish" >> $GITHUB_OUTPUT ;;
-            pl) echo "display-name=Polish" >> $GITHUB_OUTPUT ;;
-            *) echo "display-name=${{ matrix.language }}" >> $GITHUB_OUTPUT ;;
-          esac
+          LANGUAGE_NAME="${{ matrix.language.name }}"
+          TRANSLATION_INSTRUCTIONS="${{ matrix.language.instructions }}"
+          AI_SUMMARIES='${{ steps.ai-analysis.outputs.ai-summaries }}'
+          
+          # Create a comprehensive prompt for translation guidance
+          PROMPT="Based on the following WordPress Playground documentation analysis, provide specific translation guidance for $LANGUAGE_NAME translators:
 
-      - name: Create translation sync issue
-        if: steps.check-translations.outputs.has-outdated == 'true' || steps.check-translations.outputs.has-new == 'true'
+          Translation Instructions: $TRANSLATION_INSTRUCTIONS
+
+          Analysis Results: $AI_SUMMARIES
+
+          Please provide:
+          1. Priority ranking for translation tasks
+          2. Estimated effort level for each file
+          3. Specific terminology recommendations
+          4. Any technical considerations
+          5. Suggested workflow order
+
+          Format the response as structured markdown that can be used in a GitHub issue."
+          
+          AI_GUIDANCE=$(curl -s "https://models.github.ai/inference/chat/completions" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -d "{
+              \"model\": \"openai/gpt-4o\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are an expert technical documentation translation coordinator. Provide clear, actionable guidance for translators working on WordPress Playground documentation.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"$PROMPT\"
+                }
+              ],
+              \"temperature\": 0.7,
+              \"max_tokens\": 1000
+            }")
+          
+          AI_GUIDANCE_CONTENT=$(echo "$AI_GUIDANCE" | jq -r '.choices[0].message.content // "Error generating AI guidance"')
+          
+          # Save to output, escaping for GitHub Actions
+          echo "guidance<<EOF" >> $GITHUB_OUTPUT
+          echo "$AI_GUIDANCE_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create AI-enhanced translation issue
+        if: steps.ai-analysis.outputs.has-outdated == 'true' || steps.ai-analysis.outputs.has-new == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const language = '${{ matrix.language }}';
-            const languageDisplay = '${{ steps.language-info.outputs.display-name }}';
-            const outdatedFiles = ${{ steps.check-translations.outputs.outdated-files }};
-            const newFiles = ${{ steps.check-translations.outputs.new-files }};
+            const language = '${{ matrix.language.code }}';
+            const languageDisplay = '${{ matrix.language.name }}';
+            const outdatedFiles = ${{ steps.ai-analysis.outputs.outdated-files }};
+            const newFiles = ${{ steps.ai-analysis.outputs.new-files }};
+            const aiSummaries = ${{ steps.ai-analysis.outputs.ai-summaries }};
+            const aiGuidance = `${{ steps.ai-suggestions.outputs.guidance }}`;
             const prNumber = context.payload.pull_request.number;
             const prTitle = context.payload.pull_request.title;
             
-            let issueBody = `## Translation Update Required\n\n`;
+            let issueBody = `## 🤖 AI-Powered Translation Update Required\n\n`;
             issueBody += `**Language:** ${languageDisplay} (\`${language}\`)\n`;
             issueBody += `**Triggered by:** PR #${prNumber} - ${prTitle}\n`;
             issueBody += `**Pull Request:** ${context.payload.pull_request.html_url}\n\n`;
             
+            // Add AI-generated guidance
+            if (aiGuidance && aiGuidance !== "Error generating AI guidance") {
+              issueBody += `## 🎯 AI Translation Guidance\n\n${aiGuidance}\n\n`;
+            }
+            
             if (outdatedFiles.length > 0) {
-              issueBody += `### 📝 Translations to Update\n\n`;
+              issueBody += `## 📝 Translations to Update\n\n`;
               issueBody += `The following translations need to be updated to match the latest English content:\n\n`;
               for (const file of outdatedFiles) {
                 const relativePath = file.replace('packages/docs/site/docs/', '');
                 const translationPath = `packages/docs/site/i18n/${language}/docusaurus-plugin-content-docs/current/${relativePath}`;
-                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → [\`${translationPath}\`](${context.payload.repository.html_url}/blob/trunk/${translationPath})\n`;
+                
+                // Find AI analysis for this file
+                const analysis = aiSummaries.find(item => item.file === relativePath);
+                const analysisText = analysis ? `\n  - **AI Analysis:** ${JSON.stringify(analysis.analysis)}` : '';
+                
+                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → [\`${translationPath}\`](${context.payload.repository.html_url}/blob/trunk/${translationPath})${analysisText}\n`;
               }
               issueBody += `\n`;
             }
             
             if (newFiles.length > 0) {
-              issueBody += `### ✨ New Translations Needed\n\n`;
+              issueBody += `## ✨ New Translations Needed\n\n`;
               issueBody += `The following pages need new translations:\n\n`;
               for (const file of newFiles) {
                 const relativePath = file.replace('packages/docs/site/docs/', '');
                 const translationPath = `packages/docs/site/i18n/${language}/docusaurus-plugin-content-docs/current/${relativePath}`;
-                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → \`${translationPath}\` (new file)\n`;
+                
+                // Find AI analysis for this file
+                const analysis = aiSummaries.find(item => item.file === relativePath);
+                const analysisText = analysis ? `\n  - **AI Analysis:** ${JSON.stringify(analysis.analysis)}` : '';
+                
+                issueBody += `- [ ] [\`${relativePath}\`](${context.payload.repository.html_url}/blob/trunk/${file}) → \`${translationPath}\` (new file)${analysisText}\n`;
               }
               issueBody += `\n`;
             }
             
-            issueBody += `### 📋 Translation Guidelines\n\n`;
+            issueBody += `## 📋 Translation Guidelines\n\n`;
             issueBody += `1. **File Structure**: Ensure translation files mirror the exact directory structure\n`;
             issueBody += `2. **Content Format**: Include original English content in HTML comments above translations\n`;
-            issueBody += `3. **Testing**: Run \`npm run dev -- --locale ${language}\` plom \`packages/docs/site\` to test locally\n`;
-            issueBody += `4. **PR Format**: Use \`[i18n-${language}]\` prefix in PR title\n\n`;
+            issueBody += `3. **AI Assistance**: Use GitHub Models for translation suggestions (see guidance above)\n`;
+            issueBody += `4. **Testing**: Run \`npm run dev -- --locale ${language}\` from \`packages/docs/site\` to test locally\n`;
+            issueBody += `5. **PR Format**: Use \`[i18n-${language}]\` prefix in PR title\n\n`;
             
-            issueBody += `### 🔧 Commands\n\n`;
+            issueBody += `## 🔧 Commands\n\n`;
             issueBody += `\`\`\`bash\n`;
             issueBody += `# Test the translation\n`;
             issueBody += `cd packages/docs/site\n`;
@@ -163,16 +274,25 @@ jobs:
             issueBody += `npm run build:docs\n`;
             issueBody += `\`\`\`\n\n`;
             
-            issueBody += `---\n`;
-            issueBody += `*This issue was automatically created by the Translation Sync workflow.*`;
+            issueBody += `## 🤖 AI Translation Helper\n\n`;
+            issueBody += `You can use GitHub Models to assist with translations:\n\n`;
+            issueBody += `\`\`\`bash\n`;
+            issueBody += `# Install GitHub CLI Models extension\n`;
+            issueBody += `gh extension install github/gh-models\n\n`;
+            issueBody += `# Get translation suggestions\n`;
+            issueBody += `gh models run "openai/gpt-4o-mini" "Translate this WordPress documentation to ${languageDisplay}: [YOUR_TEXT_HERE]"\n`;
+            issueBody += `\`\`\`\n\n`;
             
-            const title = `[i18n-${language}] Update ${languageDisplay} translations (PR #${prNumber})`;
+            issueBody += `---\n`;
+            issueBody += `*This issue was automatically created by the AI-Powered Translation Sync workflow using GitHub Models.*`;
+            
+            const title = `[i18n-${language}] 🤖 AI-Assisted ${languageDisplay} Translation Update (PR #${prNumber})`;
             
             // Check if similar issue already exists
             const existingIssues = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: [`translation-${language}`, 'documentation'],
+              labels: [`translation-${language}`, 'documentation', 'ai-powered'],
               state: 'open'
             });
             
@@ -187,10 +307,19 @@ jobs:
                 repo: context.repo.repo,
                 title: title,
                 body: issueBody,
-                labels: [`translation-${language}`, 'documentation', 'help wanted']
+                labels: [`translation-${language}`, 'documentation', 'ai-powered', 'help wanted']
               });
               
-              console.log(`Created translation issue: ${issue.data.html_url}`);
+              console.log(`Created AI-enhanced translation issue: ${issue.data.html_url}`);
+              
+              // Add a comment to the original PR
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `🤖 **AI Translation Sync**: Created translation update issue for ${languageDisplay}: ${issue.data.html_url}`
+              });
+              
             } else {
               console.log(`Similar issue already exists: ${similarIssue.html_url}`);
             }
