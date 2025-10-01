@@ -3,7 +3,7 @@ import { startPlaygroundWeb } from '@wp-playground/client';
 import {
 	DEFAULT_URL_PREFIX,
 	DEFAULT_WORKSPACE_DIR,
-	DEFAULT_WP_REMOTE,
+	getRemoteUrl,
 } from '../constants';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import {
@@ -120,7 +120,7 @@ export const PlaygroundManager = () => {
 			try {
 				const clientInstance = await startPlaygroundWeb({
 					iframe: previewIframe,
-					remoteUrl: DEFAULT_WP_REMOTE,
+					remoteUrl: getRemoteUrl().toString(),
 					// blueprint: {
 					// 	preferredVersions: {
 					// 		wp: wpVersionRef.current,

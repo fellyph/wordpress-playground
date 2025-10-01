@@ -1,8 +1,5 @@
-export const DEFAULT_PHP_VERSION = '8.4';
-export const DEFAULT_WP_VERSION = '6.8';
-// @TODO: Use URL imported from vite build-time config
-export const DEFAULT_WP_REMOTE = 'http://127.0.0.1:5400/remote.html';
-// export const DEFAULT_WP_REMOTE = 'https://playground.wordpress.net/remote.html';
+// @ts-expect-error
+import { buildVersion } from 'virtual:website-config';
 
 // @TODO: Get rid of the hardcoded initial path, always source cwd from the client.
 export const DEFAULT_WORKSPACE_DIR = '/wordpress/workspace';
@@ -21,3 +18,10 @@ $html_processor = WP_HTML_Processor::create_fragment('<p><span>Hey!</span></p>')
 $html_processor->next_tag();
 var_dump($html_processor->get_tag());
 ?>`;
+
+export function getRemoteUrl() {
+	const remoteUrl = new URL(window.location.origin);
+	remoteUrl.pathname = '/remote.html';
+	remoteUrl.searchParams.set('v', buildVersion);
+	return remoteUrl;
+}
