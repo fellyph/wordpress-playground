@@ -1,5 +1,10 @@
 import { logger } from '@php-wasm/logger';
-import { Semaphore, createSpawnHandler, joinPaths } from '@php-wasm/util';
+import {
+	Semaphore,
+	basename,
+	createSpawnHandler,
+	joinPaths,
+} from '@php-wasm/util';
 import type { Emscripten } from './emscripten-types';
 import type { ListFilesOptions, RmDirOptions } from './fs-helpers';
 import { FSHelpers } from './fs-helpers';
@@ -9,6 +14,7 @@ import { getLoadedRuntime } from './load-php-runtime';
 import type { PHPRequestHandler } from './php-request-handler';
 import { PHPResponse, StreamedPHPResponse } from './php-response';
 import type {
+	ChildProcess,
 	MessageListener,
 	PHPEvent,
 	PHPEventListener,
@@ -83,7 +89,6 @@ export class PHP implements Disposable {
 		needsRotating: boolean;
 		maxRequests: number;
 		requestsMade: number;
-		cwd?: string;
 	} = {
 		enabled: false,
 		recreateRuntime: () => 0,
@@ -395,6 +400,15 @@ export class PHP implements Disposable {
 	 */
 	chdir(path: string) {
 		this[__private__dont__use].FS.chdir(path);
+	}
+
+	/**
+	 * Gets the current working directory in the PHP filesystem.
+	 *
+	 * @returns The current working directory.
+	 */
+	cwd() {
+		return this[__private__dont__use].FS.cwd();
 	}
 
 	/**
@@ -1300,14 +1314,12 @@ export class PHP implements Disposable {
 	enableRuntimeRotation(options: {
 		recreateRuntime: () => Promise<number> | number;
 		maxRequests?: number;
-		cwd?: string;
 	}) {
 		this.#rotationOptions = {
 			...this.#rotationOptions,
 			enabled: true,
 			recreateRuntime: options.recreateRuntime,
 			maxRequests: options.maxRequests ?? 400,
-			cwd: options.cwd,
 		};
 	}
 
@@ -1342,6 +1354,27 @@ export class PHP implements Disposable {
 		const oldFS = this[__private__dont__use].FS;
 		const oldRootLevelPaths = this.listFiles('/').map((file) => `/${file}`);
 		const oldSpawnProcess = this[__private__dont__use].spawnProcess;
+
+		// Temporarily set CWD to / and restore it at the end of this method.
+		//
+		// There's a chance cleaning up old mounts via mount.unmount()
+		// will attempt removing the CWD. Normally, this would throw
+		// FS.ErrnoError(10) EBUSY and interrupt the PHP runtime rotation,
+		// leaving us in a broken state.
+		//
+		// Even though removing the CWD directory is not allowed by the
+		// filesystem, we don't care that much here – we're merely freeing
+		// all the resources allocated by the old filesystem before it's
+		// garbage collected. We are about to recreate the same filesystem
+		// structure and mounts in another PHP runtime.
+		//
+		// Therefore, let's suspend the strict EBUSY check by setting the CWD
+		// to / for the cleanup purposes. We'll attempt to restore the original
+		// CWD on the new runtime once we re-apply all the mounts there. We'll
+		// only have a real reason to throw an error if the CWD path does not
+		// exist in the new filesystem after the rotation.
+		const oldCWD = oldFS.cwd();
+		oldFS.chdir('/');
 
 		// Unmount all the mount handlers
 		const mountHandlers: { mountHandler: MountHandler; vfsPath: string }[] =
@@ -1391,6 +1424,16 @@ export class PHP implements Disposable {
 			this.mkdir(vfsPath);
 			await this.mount(vfsPath, mountHandler);
 		}
+		try {
+			newFs.chdir(oldCWD);
+		} catch (e) {
+			throw new Error(
+				`Failed to restore CWD to ${oldCWD} after PHP runtime rotation.`,
+				{
+					cause: e,
+				}
+			);
+		}
 	}
 
 	/**
@@ -1437,8 +1480,12 @@ export class PHP implements Disposable {
 	 */
 	async cli(
 		argv: string[],
-		options: { env?: Record<string, string> } = {}
+		options: { env?: Record<string, string>; cwd?: string } = {}
 	): Promise<StreamedPHPResponse> {
+		if (basename(argv[0] ?? '') !== 'php') {
+			return this.subProcess(argv, options);
+		}
+
 		if (this.#phpWasmInitCalled) {
 			this.#rotationOptions.needsRotating = true;
 		}
@@ -1472,6 +1519,79 @@ export class PHP implements Disposable {
 			.finally(() => {
 				this.#rotationOptions.needsRotating = true;
 			});
+	}
+
+	/**
+	 * Runs an arbitrary CLI command using the spawn handler associated
+	 * with this PHP instance.
+	 *
+	 * @param argv
+	 * @param options
+	 * @returns StreamedPHPResponse.
+	 */
+	private async subProcess(
+		argv: string[],
+		options: { env?: Record<string, string>; cwd?: string } = {}
+	): Promise<StreamedPHPResponse> {
+		const process = this[__private__dont__use].spawnProcess(
+			argv[0],
+			argv.slice(1),
+			{
+				env: options.env,
+				cwd: options.cwd ?? this.cwd(),
+			}
+		) as ChildProcess;
+
+		const stderrStream = await createInvertedReadableStream<Uint8Array>();
+		process.on('error', (error) => {
+			stderrStream.controller.error(error);
+		});
+		process.stderr.on('data', (data) => {
+			stderrStream.controller.enqueue(data);
+		});
+
+		const stdoutStream = await createInvertedReadableStream<Uint8Array>();
+		process.stdout.on('data', (data) => {
+			stdoutStream.controller.enqueue(data);
+		});
+
+		process.on('exit', () => {
+			// Delay until next tick to ensure we don't close the streams before
+			// emitting the error event on the stderrStream.
+			setTimeout(() => {
+				/**
+				 * Ignore any close() errors, e.g. "stream already closed". We just
+				 * need to try to call close() and forget about this subprocess.
+				 */
+				try {
+					stderrStream.controller.close();
+				} catch {
+					// Ignore error
+				}
+				try {
+					stdoutStream.controller.close();
+				} catch {
+					// Ignore error
+				}
+			}, 0);
+		});
+
+		return new StreamedPHPResponse(
+			// Headers stream
+			new ReadableStream({
+				start(controller) {
+					controller.close();
+				},
+			}),
+			stdoutStream.stream,
+			stderrStream.stream,
+			// Exit code
+			new Promise((resolve) => {
+				process.on('exit', (code) => {
+					resolve(code);
+				});
+			})
+		);
 	}
 
 	setSkipShebang(shouldSkip: boolean) {
@@ -1550,9 +1670,23 @@ function copyMEMFSNodes(
 		copyMEMFSNodes(source, target, joinPaths(path, filename));
 	}
 }
+
+/**
+ * Creates a readable stream with inverted control flow,
+ * based on the specified underlying source.
+ *
+ * In this case, inverting control flow means exposing the controller
+ * so the consumer can insert data into the stream.
+ *
+ * @param source - The underlying source to use.
+ * @returns The resulting stream and its associated controller.
+ */
 async function createInvertedReadableStream<T = BufferSource>(
 	source: UnderlyingSource<T> = {}
-) {
+): Promise<{
+	stream: ReadableStream<T>;
+	controller: ReadableStreamDefaultController<T>;
+}> {
 	let controllerResolve: (
 		controller: ReadableStreamDefaultController<T>
 	) => void;

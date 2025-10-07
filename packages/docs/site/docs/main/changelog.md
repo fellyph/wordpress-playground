@@ -9,6 +9,118 @@ All notable changes to this project are documented in this file by a CI job
 that runs on every NPM release. The file follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 format.
 
+## [v3.0.9] (2025-10-06) 
+
+### Tools
+
+- Fix local package repository command running issue. ([#2720](https://github.com/WordPress/wordpress-playground/pull/2720))
+
+### Various
+
+- [i18n] Added Gujarati Translation for Local Development 02-vscode-extension.md File. ([#2718](https://github.com/WordPress/wordpress-playground/pull/2718))
+- [i18n] Added Gujarati Translation for Local Development 03-php-wasm-node File. ([#2719](https://github.com/WordPress/wordpress-playground/pull/2719))
+- docs: Add browser support information to limitations documentation. ([#2711](https://github.com/WordPress/wordpress-playground/pull/2711))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@getdave @mho22 @shail-mehta
+
+
+## [v3.0.8] (2025-10-02) 
+
+### Documentation
+
+- [i18n] Added Gujarati Translation for Documentation Contributions. ([#2610](https://github.com/WordPress/wordpress-playground/pull/2610))
+
+### Website
+
+- [PHP Playground] Attach client to https://playground.wordpress.net/remote.html. ([#2717](https://github.com/WordPress/wordpress-playground/pull/2717))
+
+### Internal
+
+- Add name to Playground Website and Website extras cli packages. ([#2716](https://github.com/WordPress/wordpress-playground/pull/2716))
+
+### Various
+
+- [i18n] Fixing typos in French translation of quick-start-guide.md. ([#2712](https://github.com/WordPress/wordpress-playground/pull/2712))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @beryl-dlg @dilipom13
+
+
+## [v3.0.7] (2025-10-01) 
+
+### Tools
+
+
+#### PHP WebAssembly
+
+- [PHP] Add "ls" and "pwd" CLI commands. ([#2701](https://github.com/WordPress/wordpress-playground/pull/2701))
+
+### Documentation
+
+- Revert Quick guide to the English version. ([#2709](https://github.com/WordPress/wordpress-playground/pull/2709))
+- [i18n] Add French translation for quick-start-guide.md. ([#2710](https://github.com/WordPress/wordpress-playground/pull/2710))
+
+### PHP WebAssembly
+
+- Preserve chroot across all worker-managed PHP instances. ([#2704](https://github.com/WordPress/wordpress-playground/pull/2704))
+- [PHP] Allow removing CWD during runtime rotation. ([#2714](https://github.com/WordPress/wordpress-playground/pull/2714))
+- [PHP] Do not reap() PHP in the worker until the streaming response ends. ([#2703](https://github.com/WordPress/wordpress-playground/pull/2703))
+- [PHP] Move registerWorkerListeners() from a specific worker to the parent PHPWorker. ([#2705](https://github.com/WordPress/wordpress-playground/pull/2705))
+- [PHP] Support subprocesses in cli() calls. ([#2702](https://github.com/WordPress/wordpress-playground/pull/2702))
+
+### Website
+
+- IDE-like PHP playground. ([#2699](https://github.com/WordPress/wordpress-playground/pull/2699))
+
+### Internal
+
+- [PHP utils] Export splitShellCommand. ([#2706](https://github.com/WordPress/wordpress-playground/pull/2706))
+
+### Bug Fixes
+
+- CORS proxy: Fix custom origin validation during deployment. ([#2698](https://github.com/WordPress/wordpress-playground/pull/2698))
+
+### Various
+
+- [i18] Add French translation for launch.md. ([#2697](https://github.com/WordPress/wordpress-playground/pull/2697))
+- [i18n] Add French translation for quick-start-guide.md. ([#2692](https://github.com/WordPress/wordpress-playground/pull/2692))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @beryl-dlg @brandonpayton @fellyph
+
+
+## [v3.0.6] (2025-09-29) 
+
+### Documentation
+
+- [i18n] Add French translation for resources.md. ([#2680](https://github.com/WordPress/wordpress-playground/pull/2680))
+
+### Website
+
+- [Client] Enable calling playground.runStream() and .cli() from the client. ([#2688](https://github.com/WordPress/wordpress-playground/pull/2688))
+
+### Various
+
+- Update Playground JS API tutorial Link. ([#2685](https://github.com/WordPress/wordpress-playground/pull/2685))
+- [i18n] Add Japanese translations to Playground CLI. ([#2683](https://github.com/WordPress/wordpress-playground/pull/2683))
+
+### Contributors
+
+The following contributors merged PRs in this release:
+
+@adamziel @beryl-dlg @jdahir0789 @shimotmk
+
+
 ## [v3.0.5] (2025-09-25) 
 
 ### Bug Fixes
